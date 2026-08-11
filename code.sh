@@ -56,7 +56,11 @@ FPS=30
 
 # 2. PROCEDURAL EFFECTS & PROMPTS
 echo -e "\n${YELLOW}[2/6] Procedural Effects & Prompt Configuration:${NC}"
-read -p "Enter prompt configuration [soliton_core]: " PROMPT_INPUT
+read -p "Enter prompt configuration [soliton_core (default): Standard baseline propagation model evaluating the primary $P, E, D$ tensor subfunctions.soliton_boost: Enhances the energy amplitude multiplier and injector rate (+1.5 modifier), pushing waves toward high-energy domain boundaries.soliton_shift: Introduces a dynamic phase-shifting oscillation across frames driven by $\sin(\text{progress} \cdot \pi)$.ir_thermal or thermal: Switches the Matplotlib colormapping profile into a deep thermal-infrared band (inferno), simulating infrared heat and radiation mapping.
+
+uv_spectrum or ultraviolet: Shifts the colormap into an ultraviolet fluorescence profile (cool), simulating sensors tuned to ultra-high frequency photon emission.
+
+eye_filter: Activates a biological eye-adjustment adaptation curve that dynamically scales local luminance thresholds based on photon density.negative_mass or neg_mass: Applies operator-theory logarithmic field inversion (- \log(|Z|) \cdot \text{sign}(Z)), reversing standard electron-density distribution into negative-mass topological amplitude domains.]: " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core}
 
 read -p "Enter full parametric seed float [1.25]: " FULL_SEED

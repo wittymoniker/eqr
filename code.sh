@@ -45,21 +45,23 @@ case "$TIME_CHOICE" in
     *) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
 esac
 
-# 2. MULTI-EFFECTS / PROCEDURAL SEQUENCE PROMPTS (Comma-Separated Support)
+# ==============================================================================
+# 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION (COMMA-SUPPORTED)
+# ==============================================================================
 echo -e "\n${YELLOW}[2/6] Procedural Effects & Prompt Configuration (Comma-Separated Support):${NC}"
 echo "  Supports layered effects, sums, multifilters, or sequential procedural clips."
-read -p "Enter prompt configuration (e.g. soliton_boost, resonance_shift, phase_lock) [soliton_core]: " PROMPT_INPUT
+echo "  Examples: soliton_boost, negative_mass, ir_thermal, uv_spectrum, resonance_shift"
+read -p "Enter prompt configuration [soliton_core]: " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core}
 
 read -p "Enter full parametric seed float / rotational weight [1.25]: " FULL_SEED
 FULL_SEED=${FULL_SEED:-1.25}
 
-read -p "Enter spatial harmonic vector scale (x,y,z relative) [1.0,1.0,1.0]: " HARMONIC_VEC
+read -p "Enter spatial harmonic vector scale as x,y,z (e.g. 1.0,1.0,1.0) [1.0,1.0,1.0]: " HARMONIC_VEC
 HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
 
 read -p "Enter stochastic bifurcation weight for indecisive operator points [0.01]: " BIFURCATION_WEIGHT
 BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
-
 # 3. CENTIMETER FIELD SCALE & ORIGIN-POINT CAMERA CONTROLS
 echo -e "\n${YELLOW}[3/6] Centimeter Field Scale & Origin-Point Camera Controls:${NC}"
 echo "  - Propagation Bound factor: c = 134,964,356 cm/s (Unit: cm)"
@@ -256,15 +258,34 @@ except Exception as e:
     sys.exit(1)
 EOF
 
+# Ensure safety fallbacks for variables if skipped or empty
+# Safe Default Initializations to prevent unbound variable crashes under 'set -u'
+TIME_CHOICE=${TIME_CHOICE:-3}
+USER_UNITS=${USER_UNITS:-1.0}
+VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
+PROMPT_INPUT=${PROMPT_INPUT:-soliton_core}
+FULL_SEED=${FULL_SEED:-1.25}
+HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
+BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
+FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343}
+CAM_DIST=${CAM_DIST:-2.0}
+ZOOM_CURVE=${ZOOM_CURVE:-1.0}
+CAM_PITCH=${CAM_PITCH:-35}
+CAM_YAW=${CAM_YAW:-55}
+SCALE_VAL=${SCALE_VAL:-1.0}
+FPS=${FPS:-30}
+
+# FFmpeg Scaling filter explicitly assigned to a variable to protect parentheses from shell parsing errors
+FFMPEG_VF="scale=trunc(iw/2)*2:trunc(ih/2)*2"
+
 # Encoding via FFmpeg combining Video and Physical Tensor Audio into script folder container
 echo -e "\n[*] Encoding final muxed video container into script folder..."
 ffmpeg -hide_banner -loglevel error -y -framerate "$FPS" -i "/tmp/tensor_graph_frames/frame_%04d.png" \
     -i "$AUDIO_FILE" \
     -c:v libsvtav1 -crf 28 -pix_fmt yuv420p \
     -c:a aac -b:a 128k \
-    -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
+    -vf "$FFMPEG_VF" \
     "$OUTPUT_FILE"
-
 # Cleanup temp files
 rm -rf /tmp/tensor_graph_frames
 rm -f "$AUDIO_FILE"

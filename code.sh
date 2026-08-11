@@ -23,19 +23,22 @@ echo -e "Propagation Bound  : ${BLUE}134,964,356 cm/s${NC}"
 echo -e "Meum Constant (20d): ${BLUE}1.1975807343385265188${NC}"
 echo -e "${CYAN}------------------------------------------------------------------------------${NC}\n"
 
-# 1. 6-OPTION TIMESCALE SELECTOR (1 Gigasecond down to 1 Picosecond)
-echo -e "${YELLOW}[1/6] Select Time Scale Unit (6 Options from 1 Gigasecond to 1 Picosecond):${NC}"
-echo "  1) Gigasecond (1 Gs = 10^9 s)"
-echo "  2) Second     (1 s  = 1.0 s)"
-echo "  3) Millisecond(1 ms = 10^-3 s)"
-echo "  4) Microsecond(1 µs = 10^-6 s)"
-echo "  5) Nanosecond (1 ns = 10^-9 s)"
-echo "  6) Picosecond (1 ps = 10^-12 s)"
-read -p "Select timescale option [1-6, default 2]: " TIME_CHOICE
+# ==============================================================================
+# 1. 6-OPTION TIMESCALE SELECTOR & STRETCH DURATION PARAMETERS
+# ==============================================================================
+echo -e "${YELLOW}[1/6] Select Base Time Scale Unit:${NC}"
+echo "  1) Gigasecond  (1 Gs  = 10^9 s)"
+echo "  2) Second      (1 s   = 1.0 s)"
+echo "  3) Millisecond (1 ms  = 10^-3 s)"
+echo "  4) Microsecond (1 µs  = 10^-6 s)"
+echo "  5) Nanosecond  (1 ns  = 10^-9 s)"
+echo "  6) Picosecond  (1 ps  = 10^-12 s)"
+read -p "Select timescale unit option [1-6, default 2]: " TIME_CHOICE
 TIME_CHOICE=${TIME_CHOICE:-2}
 
 case "$TIME_CHOICE" in
     1) SCALE_VAL="1e9"; SCALE_LABEL="Gs" ;;
+    2) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
     3) SCALE_VAL="1e-3"; SCALE_LABEL="ms" ;;
     4) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
     5) SCALE_VAL="1e-9"; SCALE_LABEL="ns" ;;
@@ -43,11 +46,15 @@ case "$TIME_CHOICE" in
     *) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
 esac
 
-read -p "Enter total numeric duration multiplier in selected units [1.0]: " USER_DURATION
-USER_DURATION=${USER_DURATION:-1.0}
+read -p "Enter number of units to span [1.0]: " USER_UNITS
+USER_UNITS=${USER_UNITS:-1.0}
 
-CALC_DURATION_SEC=$(python3 -c "print(float('${USER_DURATION}') * float('${SCALE_VAL}'))")
-TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($CALC_DURATION_SEC) * 30))))")
+read -p "Enter total output video stretch duration in real seconds (e.g. 10.0 for 10s video) [30.0]: " VIDEO_STRETCH_SEC
+VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
+
+# Calculations for Python and FFmpeg
+CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VAL}'))")
+TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * 30))))")
 FPS=30
 
 # 2. SEED PROTOCOL / FULL PARAMETRIC FREEDOM

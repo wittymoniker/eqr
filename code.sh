@@ -6,7 +6,19 @@
 # ==============================================================================
 
 set -uo pipefail
-
+# Safe Default Initializations to prevent unbound variable crashes under 'set -u'
+TIME_CHOICE=${TIME_CHOICE:-3}
+USER_UNITS=${USER_UNITS:-1.0}
+VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
+PROMPT_INPUT=${PROMPT_INPUT:-soliton_core}
+FULL_SEED=${FULL_SEED:-1.25}
+HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
+BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
+FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343}
+CAM_DIST=${CAM_DIST:-2.0}
+ZOOM_CURVE=${ZOOM_CURVE:-1.0}
+CAM_PITCH=${CAM_PITCH:-35}
+CAM_YAW=${CAM_YAW:-55}
 # ANSI Color Codes for KDE Konsole Output
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
@@ -24,27 +36,30 @@ echo -e "Meum Constant (20d): ${BLUE}1.1975807343385265188${NC}"
 echo -e "Physical Scale     : ${BLUE}Centimeters (cm)${NC}"
 echo -e "${CYAN}------------------------------------------------------------------------------${NC}\n"
 
-# 1. 6-OPTION TIMESCALE SELECTOR & DURATION STRETCH
 echo -e "${YELLOW}[1/6] Select Base Time Scale Unit:${NC}"
 echo "  1) Gigasecond  (1 Gs  = 10^9 s)"
-echo "  2) Second      (1 s   = 1.0 s)"
-echo "  3) Millisecond (1 ms  = 10^-3 s)"
-echo "  4) Microsecond (1 µs  = 10^-6 s)"
-echo "  5) Nanosecond  (1 ns  = 10^-9 s)"
-echo "  6) Picosecond  (1 ps  = 10^-12 s)"
-read -p "Select timescale unit option [1-6, default 2]: " TIME_CHOICE
-TIME_CHOICE=${TIME_CHOICE:-2}
+echo "  2) Megasecond  (1 Ms  = 10^6 s)"
+echo "  3) Second      (1 s   = 1.0 s)"
+echo "  4) Millisecond (1 ms  = 10^-3 s)"
+echo "  5) Microsecond (1 µs  = 10^-6 s)"
+echo "  6) Nanosecond  (1 ns  = 10^-9 s)"
+echo "  7) Picosecond  (1 ps  = 10^-12 s)"
+read -p "Select timescale unit option [1-7, default 3]: " TIME_CHOICE
+TIME_CHOICE=${TIME_CHOICE:-3}
 
 case "$TIME_CHOICE" in
     1) SCALE_VAL="1e9"; SCALE_LABEL="Gs" ;;
-    2) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
-    3) SCALE_VAL="1e-3"; SCALE_LABEL="ms" ;;
-    4) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
-    5) SCALE_VAL="1e-9"; SCALE_LABEL="ns" ;;
-    6) SCALE_VAL="1e-12"; SCALE_LABEL="ps" ;;
+    2) SCALE_VAL="1e6"; SCALE_LABEL="Ms" ;;
+    3) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
+    4) SCALE_VAL="1e-3"; SCALE_LABEL="ms" ;;
+    5) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
+    6) SCALE_VAL="1e-9"; SCALE_LABEL="ns" ;;
+    7) SCALE_VAL="1e-12"; SCALE_LABEL="ps" ;;
     *) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
 esac
 
+read -p "Enter number of units to span [1.0]: " USER_UNITS
+USER_UNITS=${USER_UNITS:-1.0}
 # ==============================================================================
 # 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION (COMMA-SUPPORTED)
 # ==============================================================================

@@ -5,7 +5,82 @@
 # Propagation Bound: c = 134,964,356 cm/s (Centimeter Scale with Nanometer Wavelength RGB)
 # ==============================================================================
 
+#!/bin/bash
 set -uo pipefail
+
+# ANSI Color Codes
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+clear
+echo -e "${CYAN}==============================================================================${NC}"
+echo -e "${GREEN}    TENSOR REALITY ENGINE - 3D ROTATIONAL SEED & WAVELENGTH PIPELINE     ${NC}"
+echo -e "${CYAN}==============================================================================${NC}"
+
+# 1. TIMESCALE & RATIO CONFIGURATION
+echo -e "${YELLOW}[1/6] Select Base Time Scale Unit:${NC}"
+echo "  1) Gigasecond  (1 Gs  = 10^9 s)"
+echo "  2) Megasecond  (1 Ms  = 10^6 s)"
+echo "  3) Second      (1 s   = 1.0 s)"
+echo "  4) Millisecond (1 ms  = 10^-3 s)"
+echo "  5) Microsecond (1 µs  = 10^-6 s)"
+echo "  6) Nanosecond  (1 ns  = 10^-9 s)"
+echo "  7) Picosecond  (1 ps  = 10^-12 s)"
+read -p "Select timescale unit option [1-7, default 3]: " TIME_CHOICE
+TIME_CHOICE=${TIME_CHOICE:-3}
+
+case "$TIME_CHOICE" in
+    1) SCALE_VAL="1e9"; SCALE_LABEL="Gs" ;;
+    2) SCALE_VAL="1e6"; SCALE_LABEL="Ms" ;;
+    3) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
+    4) SCALE_VAL="1e-3"; SCALE_LABEL="ms" ;;
+    5) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
+    6) SCALE_VAL="1e-9"; SCALE_LABEL="ns" ;;
+    7) SCALE_VAL="1e-12"; SCALE_LABEL="ps" ;;
+    *) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
+esac
+
+read -p "Enter number of units to span [1.0]: " USER_UNITS
+USER_UNITS=${USER_UNITS:-1.0}
+
+read -p "Enter output video playback stretch duration in real seconds [30.0]: " VIDEO_STRETCH_SEC
+VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
+
+# Explicitly compute physical duration and safe default fallbacks
+CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VAL}'))")
+TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * 30))))")
+FPS=30
+
+# 2. PROCEDURAL EFFECTS & PROMPTS
+echo -e "\n${YELLOW}[2/6] Procedural Effects & Prompt Configuration:${NC}"
+read -p "Enter prompt configuration [soliton_core]: " PROMPT_INPUT
+PROMPT_INPUT=${PROMPT_INPUT:-soliton_core}
+
+read -p "Enter full parametric seed float [1.25]: " FULL_SEED
+FULL_SEED=${FULL_SEED:-1.25}
+
+read -p "Enter spatial harmonic vector scale as x,y,z [1.0,1.0,1.0]: " HARMONIC_VEC
+HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
+
+read -p "Enter stochastic bifurcation weight [0.01]: " BIFURCATION_WEIGHT
+BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
+
+# 3. CAMERA ANGLES WITH MULTI-TURN / MODULO SUPPORT
+echo -e "\n${YELLOW}[3/6] Camera Orientation & Multi-Turn Angles:${NC}"
+read -p "Enter initial Pitch angle (degrees, e.g. 720 for multi-turns) [35]: " CAM_PITCH
+CAM_PITCH=${CAM_PITCH:-35}
+
+read -p "Enter initial Yaw angle (degrees, e.g. 1180 for multi-turns) [55]: " CAM_YAW
+CAM_YAW=${CAM_YAW:-55}
+
+read -p "Enter field dimension scale multiplier [1.1975807343]: " FIELD_SCALE_MULT
+FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343}
+
+# Safe export declarations
+export FIELD_SCALE_MULT FPS TOTAL_FRAMES CALC_DURATION_SEC VIDEO_STRETCH_SEC FULL_SEED BIFURCATION_WEIGHT CAM_PITCH CAM_YAW PROMPT_INPUT HARMONIC_VEC
 # Safe Default Initializations to prevent unbound variable crashes under 'set -u'
 TIME_CHOICE=${TIME_CHOICE:-3}
 USER_UNITS=${USER_UNITS:-1.0}

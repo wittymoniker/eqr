@@ -54,8 +54,8 @@ read -p "Enter output video playback stretch duration in real seconds [30.0]: " 
 VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
 
 CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VAL}'))")
-TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * 30))))")
 FPS=30
+export TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * float($FPS)))))")
 
 # ==============================================================================
 # 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION (COMMA-SUPPORTED)
@@ -101,17 +101,11 @@ echo -e "\n${YELLOW}[4/6] Nanometer Wavelength Colorization & Eye-Adjustment Map
 echo "  - Simulating RGB colors based on true physical wavelengths (R: ~650nm, G: ~530nm, B: ~470nm)"
 echo "  - Natural translucency/transparency blending & dynamic frame-by-frame eye-adjustment active."
 
-# ==============================================================================
-# 5. UNIFIED TIMESTAMP & SCRIPT DIRECTORY OUTPUT CONFIGURATION
-# ==============================================================================
+# 5. UNIFIED TIMESTAMP & DIRECTORY CONFIGURATION
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Lock the timestamp ONCE globally for both Python output and FFmpeg muxing
-export TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
 export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
-
-# Ensure total frames scale cleanly with your desired playback stretch and FPS (30)
-export TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * float($FPS)))))")
 
 echo -e "\n${CYAN}[+] Parameters Locked & Saved:${NC}"
 echo -e "    - Duration Spanned : $USER_UNITS $SCALE_LABEL ($CALC_DURATION_SEC physical seconds)"
@@ -223,9 +217,9 @@ try:
         if use_negative_mass:
             Z = -np.log(np.abs(Z) + 1e-5) * np.sign(Z)
 
-        # --- SAFETY FIX: Sanitize NaNs and Infs to prevent rendering crashes ---
+        # Sanitize array to completely prevent NaN/Inf rendering crashes
         Z = np.nan_to_num(Z, nan=0.0, posinf=1.0, neginf=-1.0)
-
+        
         z_min, z_max = Z.min(), Z.max()
         if np.isclose(z_min, z_max):
             Z_norm = np.zeros_like(Z)
@@ -283,7 +277,9 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-# Safe fallback initializations for FFmpeg
+# ==============================================================================
+# BASH ENCODING & MUXING PIPELINE
+# ==============================================================================
 FFMPEG_VF="scale=trunc(iw/2)*2:trunc(ih/2)*2"
 
 echo -e "\n[*] Encoding final muxed video container into script folder..."

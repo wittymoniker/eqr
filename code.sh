@@ -1,5 +1,3 @@
-
-
 #!/bin/bash
 # ==============================================================================
 # ADVANCED TENSOR REALITY ENGINE - 3D SELF-PHASING ROTATIONAL SEED PIPELINE
@@ -59,6 +57,7 @@ CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VA
 FPS=30
 export TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * float($FPS)))))")
 export CALC_DURATION_SEC
+export VIDEO_STRETCH_SEC
 
 # ==============================================================================
 # 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION
@@ -164,7 +163,6 @@ export TARGET_HEURISTIC
 export AUDIO_PROFILE
 export FIELD_SCALE_MULT
 export FPS
-export VIDEO_STRETCH_SEC
 export FULL_SEED
 export BIFURCATION_WEIGHT
 export CAM_PITCH
@@ -182,7 +180,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (High-Fidelity Adaptive Audio & Tensor Renderer)
+# 5. WRITE EXTERNAL PYTHON ENGINE (Adaptive Audio & Full-Duration Sync Engine)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -232,7 +230,7 @@ try:
     hz = h_vec[2] if len(h_vec) > 2 else 1.0
 
     rng = np.random.default_rng(int(full_seed * 1000) % 2**32)
-    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Heuristic: {heuristic}, Audio: {audio_profile}")
+    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Heuristic: {heuristic}, Audio: {audio_profile}, Playback Duration: {playback_sec}s")
 
     plt.style.use('dark_background')
     fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
@@ -335,7 +333,6 @@ try:
         if i % log_interval == 0 or i == total_frames - 1:
             print(f"[Python] Idealized Progress: Rendered frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
-        # High-fidelity multi-metric sound extraction
         tensor_audio_samples.append(np.mean(Z))
         tensor_variance_samples.append(np.std(Z))
         tensor_peak_samples.append(np.max(np.abs(Z)))
@@ -344,7 +341,7 @@ try:
     plt.close(fig)
     print("[Python] Multi-spectral optical frames compiled successfully.")
 
-    print(f"[Python] Synthesizing high-density adaptive physical audio ({audio_profile})...")
+    print(f"[Python] Synthesizing high-density adaptive physical audio ({audio_profile}) spanning {playback_sec}s...")
     t_audio = np.linspace(0, playback_sec, total_audio_frames)
     
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)
@@ -379,7 +376,7 @@ try:
         wf.setframerate(sample_rate)
         wf.writeframes(audio_pcm.tobytes())
 
-    print("[Python] High-density adaptive physical audio generated successfully.")
+    print("[Python] Full-duration adaptive physical audio generated successfully.")
 
 except Exception as e:
     print(f"[Python Error] Caught exception during execution: {e}")

@@ -56,9 +56,10 @@ VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
 CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VAL}'))")
 FPS=30
 export TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * float($FPS)))))")
+export CALC_DURATION_SEC
 
 # ==============================================================================
-# 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION (COMMA-SUPPORTED)
+# 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION
 # ==============================================================================
 echo -e "\n${YELLOW}[2/6] Procedural Effects & Prompt Configuration (Comma-Separated Support):${NC}"
 echo "  - soliton_core    : Standard baseline evaluation of P, E, D tensor subfunctions."
@@ -81,7 +82,7 @@ HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
 read -p "Enter stochastic bifurcation weight for indecisive operator points [0.01]: " BIFURCATION_WEIGHT
 BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
 
-# 3. CENTIMETER-BASED FIELD SCALE & SPATIAL DOMAIN SELECTOR (7 OPTIONS)
+# 3. CENTIMETER-BASED FIELD SCALE & SPATIAL DOMAIN SELECTOR
 echo -e "\n${YELLOW}[3/6] Centimeter-Based Spatial Scale & Heuristics:${NC}"
 echo "Select Base Spatial Dimension Scale Unit (Metric relative to cm):"
 echo "  1) Gigameter   (Gm  = 10^11 cm)"
@@ -108,7 +109,6 @@ esac
 read -p "Enter custom free-parameter multiplier for spatial grid [1.1975807343]: " FIELD_SCALE_MULT
 FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343}
 
-# Target Labeling Heuristics Selector (Now including Synesthesia!)
 echo -e "\nSelect Target Labeling Heuristic Profile:"
 echo "  1) mattervision (Density/Mass distribution field matrix overlays)"
 echo "  2) photovision  (Photon flux luminance and wavelength-band colorization)"
@@ -125,7 +125,6 @@ case "$HEURISTIC_CHOICE" in
     *) TARGET_HEURISTIC="photovision" ;;
 esac
 
-# Acoustic Audio Synthesis Engine Selector (Ears Option)
 echo -e "\n${YELLOW}[3.1] Select Acoustic Audio Sonification Profile (Ears Option):${NC}"
 echo "  1) harmonic_drone  (Resonant multi-harmonic carrier chord synthesized from tensor mean slices)"
 echo "  2) standing_wave   (Phase-coupled frequency sweeps mimicking acoustic cavity resonance)"
@@ -151,13 +150,7 @@ CAM_PITCH=${CAM_PITCH:-35}
 read -p "Enter initial Yaw angle (degrees) [55]: " CAM_YAW
 CAM_YAW=${CAM_YAW:-55}
 
-# 4. WAVELENGTH COLORIZATION & MAPPING
-echo -e "\n${YELLOW}[4/6] Nanometer Wavelength Colorization & Heuristic Mapping:${NC}"
-echo "  - Active Heuristic Profile : $TARGET_HEURISTIC"
-echo "  - Acoustic Audio Engine    : $AUDIO_PROFILE"
-echo "  - Spatial Grid Unit        : $SPATIAL_LABEL"
-
-# 5. UNIFIED TIMESTAMP & DIRECTORY CONFIGURATION
+# 4. EXPORT ENVIRONMENT VARIABLES FOR PYTHON
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
@@ -168,6 +161,14 @@ export SPATIAL_LABEL
 export TARGET_HEURISTIC
 export AUDIO_PROFILE
 export FIELD_SCALE_MULT
+export FPS
+export VIDEO_STRETCH_SEC
+export FULL_SEED
+export BIFURCATION_WEIGHT
+export CAM_PITCH
+export CAM_YAW
+export PROMPT_INPUT
+export HARMONIC_VEC
 
 echo -e "\n${CYAN}[+] Parameters Locked & Saved:${NC}"
 echo -e "    - Duration Spanned : $USER_UNITS $SCALE_LABEL ($CALC_DURATION_SEC physical seconds)"
@@ -176,13 +177,12 @@ echo -e "    - Total Frames     : $TOTAL_FRAMES frames at $FPS FPS"
 echo -e "    - Spatial Scale    : $SPATIAL_LABEL (Multiplier: $FIELD_SCALE_MULT)"
 echo -e "    - Heuristic Profile: ${BLUE}$TARGET_HEURISTIC${NC}"
 echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
-echo -e "    - Prompts/Effects  : $PROMPT_INPUT"
-echo -e "    - Harmonic Vector  : ($HARMONIC_VEC)"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
-# Python Modeling Engine: Crash-Resilient Multi-Spectral Optical & Tensor Operator Pipeline
-echo -e "[*] Initializing Crash-Resilient Python Pipeline with Operator Theory Logarithms..."
-python3 - << 'EOF'
+# ==============================================================================
+# 5. WRITE EXTERNAL PYTHON ENGINE (Prevents any bash heredoc parenthesis bugs)
+# ==============================================================================
+cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -264,7 +264,7 @@ try:
         elif heuristic == "hybrid_core":
             active_cmap = 'viridis'
         elif heuristic == "synesthesia":
-            active_cmap = 'coolwarm' # Cross-modal optical colormap
+            active_cmap = 'coolwarm'
 
         for p in prompts:
             if "boost" in p:
@@ -298,8 +298,7 @@ try:
         elif heuristic == "hybrid_core":
             Z = Z * (1.0 + 0.5 * np.cos(P))
         elif heuristic == "synesthesia":
-            # Synesthesia Heuristic: Modulates spatial grid with light frequency luminescence feedback
-            Z = Z * np.sin(np.abs(P) * np.pi + progress * np.math.pi)
+            Z = Z * np.sin(np.abs(P) * np.pi + progress * np.pi)
 
         Z = np.nan_to_num(Z, nan=0.0, posinf=1.0, neginf=-1.0)
         
@@ -317,7 +316,6 @@ try:
         ax.set_facecolor('#090d16')
         ax.plot_surface(X_rot, Y_rot, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
 
-        # Synesthesia title overlay if active
         title_prefix = f"SYNESTHESIA [Light->Sound]" if heuristic == "synesthesia" else f"Heuristic [{heuristic.upper}]"
         ax.set_title(f"{title_prefix} | Scale: {spatial_label} | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white', labelpad=6)
@@ -345,7 +343,6 @@ try:
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)
     interp_lum = np.interp(np.linspace(0, len(tensor_luminance_samples) - 1, total_audio_frames), np.arange(len(tensor_luminance_samples)), tensor_luminance_samples)
 
-    # Sound synthesis based on selected Ears/Audio profile
     if audio_profile == "harmonic_drone":
         audio_signal = interp_wave * np.sin(2 * np.pi * 110.0 * t_audio) + 0.5 * interp_lum * np.sin(2 * np.pi * 220.0 * t_audio * (1.0 + 0.1 * interp_wave)) + 0.25 * np.sin(2 * np.pi * 440.0 * t_audio)
     elif audio_profile == "standing_wave":
@@ -353,8 +350,7 @@ try:
     elif audio_profile == "photon_chime":
         audio_signal = interp_lum * np.sin(2 * np.pi * 587.33 * t_audio + np.cumsum(interp_wave) * 0.01) + 0.3 * np.sin(2 * np.pi * 880.0 * t_audio)
     elif audio_profile == "synesthesia_fx" or heuristic == "synesthesia":
-        # Synesthesia mode: Light luminance directly modulates audible carrier frequencies and optical wavelengths are heard as sound timbre
-        optical_hz = 400.0 + (interp_lum * 400.0) # Map visual light spectrum into audible acoustic Hz
+        optical_hz = 400.0 + (interp_lum * 400.0)
         audio_signal = interp_lum * np.sin(2 * np.pi * optical_hz * t_audio) * np.sin(2 * np.pi * 55.0 * t_audio * (1.0 + interp_wave))
     else:
         audio_signal = interp_wave * np.sin(2 * np.pi * 220.0 * t_audio)
@@ -377,6 +373,9 @@ except Exception as e:
     sys.exit(1)
 EOF
 
+echo -e "[*] Initializing Crash-Resilient Python Pipeline with Operator Theory Logarithms..."
+python3 /tmp/tensor_engine.py
+
 # ==============================================================================
 # BASH ENCODING & MUXING PIPELINE
 # ==============================================================================
@@ -392,6 +391,7 @@ ffmpeg -hide_banner -loglevel error -y -framerate "$FPS" -i "/tmp/tensor_graph_f
 
 rm -rf /tmp/tensor_graph_frames
 rm -f "$AUDIO_FILE"
+rm -f /tmp/tensor_engine.py
 
 echo -e "\n${CYAN}==============================================================================${NC}"
 echo -e "${GREEN}             LOCAL TENSOR RENDER COMPLETED SUCCESSFULLY                 ${NC}"

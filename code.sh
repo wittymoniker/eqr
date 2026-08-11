@@ -1,10 +1,8 @@
-Bash
-
 #!/bin/bash
 # ==============================================================================
 # ADVANCED TENSOR REALITY ENGINE - 3D SELF-PHASING ROTATIONAL SEED PIPELINE
 # Framework: Equation of Reality, P,E,D Subfunctions, Operator Theory, Meum (20d)
-# Propagation Bound: c = 134,964,356 cm/s (Centimeter Scale with Nanometer Wavelength RGB)
+# Propagation Bound: c = 134,964,356 cm/s (Centimeter Scale with Synesthesia Audio Engine)
 # ==============================================================================
 
 set -uo pipefail
@@ -110,19 +108,38 @@ esac
 read -p "Enter custom free-parameter multiplier for spatial grid [1.1975807343]: " FIELD_SCALE_MULT
 FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343}
 
-# Target Labeling Heuristics Selector
+# Target Labeling Heuristics Selector (Now including Synesthesia!)
 echo -e "\nSelect Target Labeling Heuristic Profile:"
 echo "  1) mattervision (Density/Mass distribution field matrix overlays)"
 echo "  2) photovision  (Photon flux luminance and wavelength-band colorization)"
 echo "  3) hybrid_core  (Dual simultaneous mattervision & photovision tensor fusion)"
-read -p "Select labeling heuristic option [1-3, default 2]: " HEURISTIC_CHOICE
+echo "  4) synesthesia  (Cross-modal sensory engine: light is heard, sound is seen)"
+read -p "Select heuristic option [1-4, default 2]: " HEURISTIC_CHOICE
 HEURISTIC_CHOICE=${HEURISTIC_CHOICE:-2}
 
 case "$HEURISTIC_CHOICE" in
     1) TARGET_HEURISTIC="mattervision" ;;
     2) TARGET_HEURISTIC="photovision" ;;
     3) TARGET_HEURISTIC="hybrid_core" ;;
+    4) TARGET_HEURISTIC="synesthesia" ;;
     *) TARGET_HEURISTIC="photovision" ;;
+esac
+
+# Acoustic Audio Synthesis Engine Selector (Ears Option)
+echo -e "\n${YELLOW}[3.1] Select Acoustic Audio Sonification Profile (Ears Option):${NC}"
+echo "  1) harmonic_drone  (Resonant multi-harmonic carrier chord synthesized from tensor mean slices)"
+echo "  2) standing_wave   (Phase-coupled frequency sweeps mimicking acoustic cavity resonance)"
+echo "  3) photon_chime    (High-frequency transient scintillation pulses mapped from optical flux)"
+echo "  4) synesthesia_fx  (Cross-modal audio: direct optical spectrum wavelength-to-frequency translation)"
+read -p "Select audio sonification profile [1-4, default 1]: " AUDIO_CHOICE
+AUDIO_CHOICE=${AUDIO_CHOICE:-1}
+
+case "$AUDIO_CHOICE" in
+    1) AUDIO_PROFILE="harmonic_drone" ;;
+    2) AUDIO_PROFILE="standing_wave" ;;
+    3) AUDIO_PROFILE="photon_chime" ;;
+    4) AUDIO_PROFILE="synesthesia_fx" ;;
+    *) AUDIO_PROFILE="harmonic_drone" ;;
 esac
 
 read -p "Enter initial camera distance / zoom radius [2.0]: " CAM_DIST
@@ -134,9 +151,10 @@ CAM_PITCH=${CAM_PITCH:-35}
 read -p "Enter initial Yaw angle (degrees) [55]: " CAM_YAW
 CAM_YAW=${CAM_YAW:-55}
 
-# 4. WAVELENGTH COLORIZATION & EYE-ADJUSTMENT TRANSPARENCY MAPPING
+# 4. WAVELENGTH COLORIZATION & MAPPING
 echo -e "\n${YELLOW}[4/6] Nanometer Wavelength Colorization & Heuristic Mapping:${NC}"
 echo "  - Active Heuristic Profile : $TARGET_HEURISTIC"
+echo "  - Acoustic Audio Engine    : $AUDIO_PROFILE"
 echo "  - Spatial Grid Unit        : $SPATIAL_LABEL"
 
 # 5. UNIFIED TIMESTAMP & DIRECTORY CONFIGURATION
@@ -148,6 +166,7 @@ export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
 export SPATIAL_BASE_VAL
 export SPATIAL_LABEL
 export TARGET_HEURISTIC
+export AUDIO_PROFILE
 export FIELD_SCALE_MULT
 
 echo -e "\n${CYAN}[+] Parameters Locked & Saved:${NC}"
@@ -156,6 +175,7 @@ echo -e "    - Video Stretch    : $VIDEO_STRETCH_SEC seconds playback"
 echo -e "    - Total Frames     : $TOTAL_FRAMES frames at $FPS FPS"
 echo -e "    - Spatial Scale    : $SPATIAL_LABEL (Multiplier: $FIELD_SCALE_MULT)"
 echo -e "    - Heuristic Profile: ${BLUE}$TARGET_HEURISTIC${NC}"
+echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Prompts/Effects  : $PROMPT_INPUT"
 echo -e "    - Harmonic Vector  : ($HARMONIC_VEC)"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
@@ -185,6 +205,7 @@ try:
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
     spatial_label = os.environ.get("SPATIAL_LABEL", "cm")
     heuristic = os.environ.get("TARGET_HEURISTIC", "photovision")
+    audio_profile = os.environ.get("AUDIO_PROFILE", "harmonic_drone")
     
     c = c_base * field_mult
 
@@ -195,8 +216,6 @@ try:
     playback_sec = float(os.environ.get("VIDEO_STRETCH_SEC", "30.0"))
     full_seed = float(os.environ.get("FULL_SEED", "1.25"))
     bifurc_weight = float(os.environ.get("BIFURCATION_WEIGHT", "0.01"))
-    cam_dist = float(os.environ.get("CAM_DIST", "2.0"))
-    zoom_curve = float(os.environ.get("ZOOM_CURVE", "1.0"))
     pitch_init = float(os.environ.get("CAM_PITCH", "35"))
     yaw_init = float(os.environ.get("CAM_YAW", "55"))
 
@@ -211,14 +230,13 @@ try:
     hz = h_vec[2] if len(h_vec) > 2 else 1.0
 
     rng = np.random.default_rng(int(full_seed * 1000) % 2**32)
-    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Heuristic: {heuristic}")
+    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Heuristic: {heuristic}, Audio: {audio_profile}")
 
     plt.style.use('dark_background')
     fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor('#090d16')
 
-    # Scale spatial grid according to selected spatial domain unit & multiplier
     grid_span = (c * 1e-8) * spatial_base
     x = np.linspace(-grid_span, grid_span, 50)
     y = np.linspace(-grid_span, grid_span, 50)
@@ -228,6 +246,7 @@ try:
     os.makedirs(temp_dir, exist_ok=True)
 
     tensor_audio_samples = []
+    tensor_luminance_samples = []
     sample_rate = 44100
     total_audio_frames = int(sample_rate * playback_sec)
     log_interval = max(1, total_frames // 10)
@@ -244,6 +263,8 @@ try:
             active_cmap = 'plasma'
         elif heuristic == "hybrid_core":
             active_cmap = 'viridis'
+        elif heuristic == "synesthesia":
+            active_cmap = 'coolwarm' # Cross-modal optical colormap
 
         for p in prompts:
             if "boost" in p:
@@ -272,13 +293,14 @@ try:
         if use_negative_mass:
             Z = -np.log(np.abs(Z) + 1e-5) * np.sign(Z)
 
-        # Heuristic tensor adjustments
         if heuristic == "mattervision":
-            Z = np.abs(Z) * E  # Mass-density weighted field
+            Z = np.abs(Z) * E
         elif heuristic == "hybrid_core":
             Z = Z * (1.0 + 0.5 * np.cos(P))
+        elif heuristic == "synesthesia":
+            # Synesthesia Heuristic: Modulates spatial grid with light frequency luminescence feedback
+            Z = Z * np.sin(np.abs(P) * np.pi + progress * np.math.pi)
 
-        # Sanitize array to completely prevent NaN/Inf rendering crashes
         Z = np.nan_to_num(Z, nan=0.0, posinf=1.0, neginf=-1.0)
         
         z_min, z_max = Z.min(), Z.max()
@@ -295,10 +317,12 @@ try:
         ax.set_facecolor('#090d16')
         ax.plot_surface(X_rot, Y_rot, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
 
-        ax.set_title(f"Heuristic [{heuristic.upper}] | Scale: {spatial_label} | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
+        # Synesthesia title overlay if active
+        title_prefix = f"SYNESTHESIA [Light->Sound]" if heuristic == "synesthesia" else f"Heuristic [{heuristic.upper}]"
+        ax.set_title(f"{title_prefix} | Scale: {spatial_label} | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white', labelpad=6)
         ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white', labelpad=6)
-        ax.set_zlabel("Tensor Amplitude", color='white', labelpad=6)
+        ax.set_zlabel(f"Spatial Z ({spatial_label})", color='white', labelpad=6)
 
         ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
 
@@ -309,16 +333,32 @@ try:
             print(f"[Python] Idealized Progress: Rendered frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
         wave_slice = np.mean(Z)
+        luminance_slice = np.mean(Z_adjusted)
         tensor_audio_samples.append(wave_slice)
+        tensor_luminance_samples.append(luminance_slice)
 
     plt.close(fig)
     print("[Python] Multi-spectral optical frames compiled successfully.")
 
-    print("[Python] Synthesizing physical tensor audio sonification...")
+    print(f"[Python] Synthesizing physical tensor audio ({audio_profile}) & synesthesia mapping...")
     t_audio = np.linspace(0, playback_sec, total_audio_frames)
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)
+    interp_lum = np.interp(np.linspace(0, len(tensor_luminance_samples) - 1, total_audio_frames), np.arange(len(tensor_luminance_samples)), tensor_luminance_samples)
 
-    audio_signal = interp_wave * np.sin(2 * np.pi * 220.0 * t_audio) + 0.5 * np.sin(2 * np.pi * 440.0 * t_audio * (1.0 + 0.1 * interp_wave))
+    # Sound synthesis based on selected Ears/Audio profile
+    if audio_profile == "harmonic_drone":
+        audio_signal = interp_wave * np.sin(2 * np.pi * 110.0 * t_audio) + 0.5 * interp_lum * np.sin(2 * np.pi * 220.0 * t_audio * (1.0 + 0.1 * interp_wave)) + 0.25 * np.sin(2 * np.pi * 440.0 * t_audio)
+    elif audio_profile == "standing_wave":
+        audio_signal = np.sin(2 * np.pi * 150.0 * t_audio + interp_wave * np.pi) * np.cos(2 * np.pi * 2.0 * t_audio)
+    elif audio_profile == "photon_chime":
+        audio_signal = interp_lum * np.sin(2 * np.pi * 587.33 * t_audio + np.cumsum(interp_wave) * 0.01) + 0.3 * np.sin(2 * np.pi * 880.0 * t_audio)
+    elif audio_profile == "synesthesia_fx" or heuristic == "synesthesia":
+        # Synesthesia mode: Light luminance directly modulates audible carrier frequencies and optical wavelengths are heard as sound timbre
+        optical_hz = 400.0 + (interp_lum * 400.0) # Map visual light spectrum into audible acoustic Hz
+        audio_signal = interp_lum * np.sin(2 * np.pi * optical_hz * t_audio) * np.sin(2 * np.pi * 55.0 * t_audio * (1.0 + interp_wave))
+    else:
+        audio_signal = interp_wave * np.sin(2 * np.pi * 220.0 * t_audio)
+
     audio_signal = audio_signal / (np.max(np.abs(audio_signal)) + 1e-9)
     audio_pcm = np.int16(audio_signal * 32767)
 
@@ -329,7 +369,7 @@ try:
         wf.setframerate(sample_rate)
         wf.writeframes(audio_pcm.tobytes())
 
-    print("[Python] Tensor physical audio generated successfully.")
+    print("[Python] Tensor physical audio and synesthesia soundmapping generated successfully.")
 
 except Exception as e:
     print(f"[Python Error] Caught exception during execution: {e}")

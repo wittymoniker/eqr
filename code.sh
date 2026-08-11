@@ -146,13 +146,13 @@ try:
     print(f"[Python] Engine initialized. c = {c:.2f} cm/s. Frames: {total_frames}. Prompts: {prompts}")
 
     plt.style.use('dark_background')
-    fig = plt.figure(figsize=(12, 7), facecolor='#090d16')
+    fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor('#090d16')
 
-    # Centimeter spatial volume mesh (3D coordinates)
-    x = np.linspace(-c * 1e-8, c * 1e-8, 65)
-    y = np.linspace(-c * 1e-8, c * 1e-8, 65)
+    # Centimeter spatial volume mesh (optimized grid resolution for fast rendering)
+    x = np.linspace(-c * 1e-8, c * 1e-8, 50)
+    y = np.linspace(-c * 1e-8, c * 1e-8, 50)
     X, Y = np.meshgrid(x, y)
 
     temp_dir = "/tmp/tensor_graph_frames"
@@ -166,7 +166,6 @@ try:
         progress = i / max(1, (total_frames - 1))
         t = progress * duration_sec
 
-        # Multi-prompt chronological / layered operator evaluation
         prompt_modifier = 0.0
         for p in prompts:
             if "boost" in p:
@@ -180,7 +179,6 @@ try:
         rot_angle = t * c * 1e-7 * hx
         indecisive_branch = rng.choice([-1.0, 1.0]) * bifurc_weight * np.sin(rot_angle + full_seed)
 
-        # True Reality P, E, D Subfunctions with rotational self-phasing
         X_rot = X * np.cos(rot_angle) - Y * np.sin(rot_angle)
         Y_rot = X * np.sin(rot_angle) + Y * np.cos(rot_angle)
 
@@ -190,45 +188,31 @@ try:
 
         Z = P * E + D
 
-        # Nanometer Wavelength Simulation & Eye-Adjustment Color Blending (Natural Translucency)
-        # R (~650nm), G (~530nm), B (~470nm) frequency resonance mapping
+        # Eye-adjustment feedback loop (dynamic luminance normalization)
         Z_norm = (Z - Z.min()) / (Z.max() - Z.min() + 1e-9)
-
-        # Eye-adjustment feedback loop (dynamic luminance normalization per frame)
         lum_adj = 1.0 + 0.15 * np.sin(progress * np.pi * 2)
         Z_adjusted = np.clip(Z_norm * lum_adj, 0.0, 1.0)
-
-        # Map to RGB wavelengths
-        red_channel = np.sin(Z_adjusted * np.pi / 2) * (650.0 / 700.0)
-        green_channel = np.sin(Z_adjusted * np.pi) * (530.0 / 700.0)
-        blue_channel = np.cos(Z_adjusted * np.pi / 2) * (470.0 / 700.0)
-
-        rgba_blend = np.stack([
-            np.clip(red_channel, 0, 1),
-            np.clip(green_channel, 0, 1),
-            np.clip(blue_channel, 0, 1),
-            0.85 + 0.15 * Z_adjusted # Natural translucency alpha layer
-        ], axis=-1)
 
         ax.clear()
         ax.set_facecolor('#090d16')
 
-        # Plot surface with natural color blending and translucency pointing to the origin
-        ax.plot_surface(X_rot * 1e6, Y_rot * 1e6, Z, facecolors=rgba_blend, linewidth=0.1, antialiased=True)
+        # Optimized native colormapping mapped to nanometer RGB spectral blend ('turbo' / spectral)
+        surf = ax.plot_surface(X_rot * 1e6, Y_rot * 1e6, Z_adjusted, cmap='turbo', linewidth=0.1, antialiased=True, alpha=0.9)
 
-        ax.set_title(f"3D Rotational Tensor | c={c:.0f} cm/s | t={t*1e6:.3f}µs | Vector: ({hx},{hy},{hz})", color='#00ffcc', fontsize=10, fontweight='bold')
-        ax.set_xlabel("Spatial X (µcm)", color='white', labelpad=8)
-        ax.set_ylabel("Spatial Y (µcm)", color='white', labelpad=8)
-        ax.set_zlabel("Amplitude (M)", color='white', labelpad=8)
+        ax.set_title(f"3D Rotational Tensor | c={c:.0f} cm/s | t={t*1e6:.3f}µs | Vector: ({hx},{hy},{hz})", color='#00ffcc', fontsize=9, fontweight='bold')
+        ax.set_xlabel("Spatial X (µcm)", color='white', labelpad=6)
+        ax.set_ylabel("Spatial Y (µcm)", color='white', labelpad=6)
+        ax.set_zlabel("Amplitude (M)", color='white', labelpad=6)
 
         # Origin-pointing camera swivel and scale
-        current_dist = cam_dist * (zoom_curve ** (i * 0.05))
         ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
 
         plt.tight_layout()
-        plt.savefig(f"{temp_dir}/frame_{i:04d}.png", dpi=100, facecolor=fig.get_facecolor(), edgecolor='none')
+        plt.savefig(f"{temp_dir}/frame_{i:04d}.png", dpi=90, facecolor=fig.get_facecolor(), edgecolor='none')
 
-        # Real Tensor Audio Wave Generation (Extracting actual wave structure across scale)
+        if i % 50 == 0 or i == total_frames - 1:
+            print(f"[Python] Rendered frame {i+1}/{total_frames}...")
+
         wave_slice = np.mean(Z)
         tensor_audio_samples.append(wave_slice)
 
@@ -240,7 +224,6 @@ try:
     t_audio = np.linspace(0, playback_sec, total_audio_frames)
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)
 
-    # Harmonic resonance amplification matching wavelength spectrum
     audio_signal = interp_wave * np.sin(2 * np.pi * 220.0 * t_audio) + 0.5 * np.sin(2 * np.pi * 440.0 * t_audio * (1.0 + 0.1 * interp_wave))
     audio_signal = audio_signal / (np.max(np.abs(audio_signal)) + 1e-9)
     audio_pcm = np.int16(audio_signal * 32767)

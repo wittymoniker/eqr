@@ -268,7 +268,6 @@ except Exception as e:
 EOF
 
 # Define unified timestamp once for safe muxing
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
 export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
 

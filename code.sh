@@ -45,17 +45,6 @@ case "$TIME_CHOICE" in
     *) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
 esac
 
-read -p "Enter number of units to span [1.0]: " USER_UNITS
-USER_UNITS=${USER_UNITS:-1.0}
-
-read -p "Enter total output video stretch duration in real seconds [30.0]: " VIDEO_STRETCH_SEC
-VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
-
-CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VAL}'))")
-TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * 30))))")
-FPS=30
-USER_DURATION="$USER_UNITS"
-
 # 2. MULTI-EFFECTS / PROCEDURAL SEQUENCE PROMPTS (Comma-Separated Support)
 echo -e "\n${YELLOW}[2/6] Procedural Effects & Prompt Configuration (Comma-Separated Support):${NC}"
 echo "  Supports layered effects, sums, multifilters, or sequential procedural clips."

@@ -105,8 +105,8 @@ echo -e "    - Harmonic Vector : ($HARMONIC_VEC)"
 echo -e "    - Field Scale     : ${BLUE}134,964,356 cm/s * $FIELD_SCALE_MULT${NC}"
 echo -e "    - Local Output    : $OUTPUT_FILE\n"
 
-# Python Modeling Engine: 3D Rotational Self-Phasing Waves, Nanometer Wavelength Mapping, & Physical Tensor Audio Synthesis
-echo -e "[*] Initializing Python Operator Theory & 3D Rotational Reality Pipeline..."
+# Python Modeling Engine: 3D Rotational Waves, Negative-Mass Filters, & Spectral Eye-Vision Mapping
+echo -e "[*] Initializing Python Operator Theory & Multi-Spectral Optical Filters Pipeline..."
 python3 - << EOF
 import numpy as np
 import matplotlib
@@ -134,8 +134,8 @@ try:
     pitch_init = float(${CAM_PITCH})
     yaw_init = float(${CAM_YAW})
 
-    # Parse comma-separated prompts and clean harmonic vector inputs safely
-    prompts = [p.strip() for p in "${PROMPT_INPUT}".split(',')]
+    # Parse comma-separated prompts and optical filters
+    prompts = [p.strip().lower() for p in "${PROMPT_INPUT}".split(',')]
     raw_hvec = "${HARMONIC_VEC}".replace('(', '').replace(')', '').split(',')
     h_vec = [float(v.strip()) for v in raw_hvec if v.strip()]
     hx = h_vec[0] if len(h_vec) > 0 else 1.0
@@ -143,14 +143,13 @@ try:
     hz = h_vec[2] if len(h_vec) > 2 else 1.0
 
     rng = np.random.default_rng(int(full_seed * 1000) % 2**32)
-    print(f"[Python] Engine initialized. c = {c:.2f} cm/s. Frames: {total_frames}. Prompts: {prompts}")
+    print(f"[Python] Optical Engine initialized. c = {c:.2f} cm/s. Filters active: {prompts}")
 
     plt.style.use('dark_background')
     fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor('#090d16')
 
-    # Centimeter spatial volume mesh (optimized grid resolution for fast rendering)
     x = np.linspace(-c * 1e-8, c * 1e-8, 50)
     y = np.linspace(-c * 1e-8, c * 1e-8, 50)
     X, Y = np.meshgrid(x, y)
@@ -167,15 +166,22 @@ try:
         t = progress * duration_sec
 
         prompt_modifier = 0.0
+        use_negative_mass = False
+        active_cmap = 'turbo'
+
         for p in prompts:
             if "boost" in p:
                 prompt_modifier += 1.5
             elif "shift" in p:
                 prompt_modifier += np.sin(progress * np.pi)
-            elif "phase" in p:
-                prompt_modifier += np.cos(t * 1e-6)
+            elif "negative_mass" in p or "neg_mass" in p:
+                use_negative_mass = True
+            elif "ir" in p or "thermal" in p:
+                active_cmap = 'inferno'
+            elif "uv" in p or "ultraviolet" in p:
+                active_cmap = 'cool'
 
-        # 3D Self-Phasing Rotational Seed Waves across rotation vector
+        # 3D Self-Phasing Rotational Seed Waves
         rot_angle = t * c * 1e-7 * hx
         indecisive_branch = rng.choice([-1.0, 1.0]) * bifurc_weight * np.sin(rot_angle + full_seed)
 
@@ -188,23 +194,26 @@ try:
 
         Z = P * E + D
 
-        # Eye-adjustment feedback loop (dynamic luminance normalization)
+        # Negative Mass Field Inversion Filter (reverses electron-density equivalent into negative mass domain)
+        if use_negative_mass:
+            Z = -Z
+
+        # Eye-adjustment bio-luminance adaptation curve
         Z_norm = (Z - Z.min()) / (Z.max() - Z.min() + 1e-9)
-        lum_adj = 1.0 + 0.15 * np.sin(progress * np.pi * 2)
+        lum_adj = 1.0 + 0.2 * np.sin(progress * np.pi * 2)
         Z_adjusted = np.clip(Z_norm * lum_adj, 0.0, 1.0)
 
         ax.clear()
         ax.set_facecolor('#090d16')
 
-        # Optimized native colormapping mapped to nanometer RGB spectral blend ('turbo' / spectral)
-        surf = ax.plot_surface(X_rot * 1e6, Y_rot * 1e6, Z_adjusted, cmap='turbo', linewidth=0.1, antialiased=True, alpha=0.9)
+        surf = ax.plot_surface(X_rot * 1e6, Y_rot * 1e6, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
 
-        ax.set_title(f"3D Rotational Tensor | c={c:.0f} cm/s | t={t*1e6:.3f}µs | Vector: ({hx},{hy},{hz})", color='#00ffcc', fontsize=9, fontweight='bold')
+        filter_status = "NEG-MASS" if use_negative_mass else "STANDARD"
+        ax.set_title(f"Optical Filter [{filter_status}] | c={c:.0f} cm/s | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel("Spatial X (µcm)", color='white', labelpad=6)
         ax.set_ylabel("Spatial Y (µcm)", color='white', labelpad=6)
-        ax.set_zlabel("Amplitude (M)", color='white', labelpad=6)
+        ax.set_zlabel("Amplitude", color='white', labelpad=6)
 
-        # Origin-pointing camera swivel and scale
         ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
 
         plt.tight_layout()
@@ -217,9 +226,9 @@ try:
         tensor_audio_samples.append(wave_slice)
 
     plt.close(fig)
-    print("[Python] 3D rotational frames compiled successfully.")
+    print("[Python] Multi-spectral optical frames compiled successfully.")
 
-    # Synthesize Audio from Actual Physical Tensor Wave Structure
+    # Audio sonification from physical tensor wave structure
     print("[Python] Synthesizing physical tensor audio sonification...")
     t_audio = np.linspace(0, playback_sec, total_audio_frames)
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)

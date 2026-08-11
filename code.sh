@@ -266,26 +266,11 @@ except Exception as e:
     traceback.print_exc()
     sys.exit(1)
 EOF
-# Define unified timestamp once
-print("[Python] Tensor physical audio generated successfully.")
-
-except Exception as e:
-    print(f"[Python Error] Caught exception during execution: {e}")
-    traceback.print_exc()
-    sys.exit(1)
-EOF
 
 # Define unified timestamp once for safe muxing
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
 export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
-
-# Safe fallback initializations
-FFMPEG_VF="scale=trunc(iw/2)*2:trunc(ih/2)*2"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
-export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
-audio_file_path = os.environ.get("AUDIO_FILE", "tensor_operator_audio.wav")
 
 # Safe fallback initializations
 FFMPEG_VF="scale=trunc(iw/2)*2:trunc(ih/2)*2"

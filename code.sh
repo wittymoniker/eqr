@@ -101,19 +101,26 @@ echo -e "\n${YELLOW}[4/6] Nanometer Wavelength Colorization & Eye-Adjustment Map
 echo "  - Simulating RGB colors based on true physical wavelengths (R: ~650nm, G: ~530nm, B: ~470nm)"
 echo "  - Natural translucency/transparency blending & dynamic frame-by-frame eye-adjustment active."
 
-# 5. SCRIPT DIRECTORY OUTPUT CONFIGURATION
+# ==============================================================================
+# 5. UNIFIED TIMESTAMP & SCRIPT DIRECTORY OUTPUT CONFIGURATION
+# ==============================================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
-AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
+# Lock the timestamp ONCE globally for both Python output and FFmpeg muxing
+export TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
+export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
+
+# Ensure total frames scale cleanly with your desired playback stretch and FPS (30)
+export TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * float($FPS)))))")
 
 echo -e "\n${CYAN}[+] Parameters Locked & Saved:${NC}"
-echo -e "    - Duration Spanned: $USER_UNITS $SCALE_LABEL ($CALC_DURATION_SEC physical seconds)"
-echo -e "    - Video Stretch   : $VIDEO_STRETCH_SEC seconds playback"
-echo -e "    - Prompts/Effects : $PROMPT_INPUT"
-echo -e "    - Harmonic Vector : ($HARMONIC_VEC)"
-echo -e "    - Field Scale     : ${BLUE}134,964,356 cm/s * $FIELD_SCALE_MULT${NC}"
-echo -e "    - Local Output    : $OUTPUT_FILE\n"
+echo -e "    - Duration Spanned : $USER_UNITS $SCALE_LABEL ($CALC_DURATION_SEC physical seconds)"
+echo -e "    - Video Stretch    : $VIDEO_STRETCH_SEC seconds playback"
+echo -e "    - Total Frames     : $TOTAL_FRAMES frames at $FPS FPS"
+echo -e "    - Prompts/Effects  : $PROMPT_INPUT"
+echo -e "    - Harmonic Vector  : ($HARMONIC_VEC)"
+echo -e "    - Field Scale      : ${BLUE}134,964,356 cm/s * $FIELD_SCALE_MULT${NC}"
+echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # Python Modeling Engine: Crash-Resilient Multi-Spectral Optical & Tensor Operator Pipeline
 echo -e "[*] Initializing Crash-Resilient Python Pipeline with Operator Theory Logarithms..."
@@ -267,11 +274,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-# Define unified timestamp once for safe muxing
-export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
-export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
-
-# Safe fallback initializations
+# Safe fallback initializations for FFmpeg
 FFMPEG_VF="scale=trunc(iw/2)*2:trunc(ih/2)*2"
 
 echo -e "\n[*] Encoding final muxed video container into script folder..."

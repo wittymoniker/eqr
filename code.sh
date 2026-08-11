@@ -223,9 +223,18 @@ try:
         if use_negative_mass:
             Z = -np.log(np.abs(Z) + 1e-5) * np.sign(Z)
 
-        Z_norm = (Z - Z.min()) / (Z.max() - Z.min() + 1e-9)
+        # --- SAFETY FIX: Sanitize NaNs and Infs to prevent rendering crashes ---
+        Z = np.nan_to_num(Z, nan=0.0, posinf=1.0, neginf=-1.0)
+
+        z_min, z_max = Z.min(), Z.max()
+        if np.isclose(z_min, z_max):
+            Z_norm = np.zeros_like(Z)
+        else:
+            Z_norm = (Z - z_min) / (z_max - z_min + 1e-9)
+
         lum_adj = 1.0 + 0.2 * np.sin(progress * np.pi * 2)
         Z_adjusted = np.clip(Z_norm * lum_adj, 0.0, 1.0)
+        Z_adjusted = np.nan_to_num(Z_adjusted, nan=0.0)
 
         ax.clear()
         ax.set_facecolor('#090d16')

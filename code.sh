@@ -1,3 +1,6 @@
+Here is the complete, finished code.sh script. It includes all the custom centimeter-based spatial scale options (7 choices from gigameters to picometers), mattervision vs. photovision / synesthesia heuristics, all advanced audio sonification options, and the fully adaptive high-fidelity acoustic extraction engine that captures maximum specimen sound variance without clipping.
+Bash
+
 #!/bin/bash
 # ==============================================================================
 # ADVANCED TENSOR REALITY ENGINE - 3D SELF-PHASING ROTATIONAL SEED PIPELINE
@@ -82,7 +85,7 @@ HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
 read -p "Enter stochastic bifurcation weight for indecisive operator points [0.01]: " BIFURCATION_WEIGHT
 BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
 
-# 3. CENTIMETER-BASED FIELD SCALE & SPATIAL DOMAIN SELECTOR
+# 3. CENTIMETER-BASED FIELD SCALE & SPATIAL DOMAIN SELECTOR (7 OPTIONS)
 echo -e "\n${YELLOW}[3/6] Centimeter-Based Spatial Scale & Heuristics:${NC}"
 echo "Select Base Spatial Dimension Scale Unit (Metric relative to cm):"
 echo "  1) Gigameter   (Gm  = 10^11 cm)"
@@ -180,7 +183,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (Prevents any bash heredoc parenthesis bugs)
+# 5. WRITE EXTERNAL PYTHON ENGINE (High-Fidelity Adaptive Audio & Tensor Renderer)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -246,7 +249,10 @@ try:
     os.makedirs(temp_dir, exist_ok=True)
 
     tensor_audio_samples = []
+    tensor_variance_samples = []
+    tensor_peak_samples = []
     tensor_luminance_samples = []
+
     sample_rate = 44100
     total_audio_frames = int(sample_rate * playback_sec)
     log_interval = max(1, total_frames // 10)
@@ -330,28 +336,37 @@ try:
         if i % log_interval == 0 or i == total_frames - 1:
             print(f"[Python] Idealized Progress: Rendered frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
-        wave_slice = np.mean(Z)
-        luminance_slice = np.mean(Z_adjusted)
-        tensor_audio_samples.append(wave_slice)
-        tensor_luminance_samples.append(luminance_slice)
+        # High-fidelity multi-metric sound extraction
+        tensor_audio_samples.append(np.mean(Z))
+        tensor_variance_samples.append(np.std(Z))
+        tensor_peak_samples.append(np.max(np.abs(Z)))
+        tensor_luminance_samples.append(np.mean(Z_adjusted))
 
     plt.close(fig)
     print("[Python] Multi-spectral optical frames compiled successfully.")
 
-    print(f"[Python] Synthesizing physical tensor audio ({audio_profile}) & synesthesia mapping...")
+    print(f"[Python] Synthesizing high-density adaptive physical audio ({audio_profile})...")
     t_audio = np.linspace(0, playback_sec, total_audio_frames)
+    
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)
+    interp_var = np.interp(np.linspace(0, len(tensor_variance_samples) - 1, total_audio_frames), np.arange(len(tensor_variance_samples)), tensor_variance_samples)
+    interp_peak = np.interp(np.linspace(0, len(tensor_peak_samples) - 1, total_audio_frames), np.arange(len(tensor_peak_samples)), tensor_peak_samples)
     interp_lum = np.interp(np.linspace(0, len(tensor_luminance_samples) - 1, total_audio_frames), np.arange(len(tensor_luminance_samples)), tensor_luminance_samples)
 
     if audio_profile == "harmonic_drone":
-        audio_signal = interp_wave * np.sin(2 * np.pi * 110.0 * t_audio) + 0.5 * interp_lum * np.sin(2 * np.pi * 220.0 * t_audio * (1.0 + 0.1 * interp_wave)) + 0.25 * np.sin(2 * np.pi * 440.0 * t_audio)
+        fm_modulator = np.sin(2 * np.pi * 55.0 * t_audio * (1.0 + interp_var * 2.5))
+        audio_signal = (
+            interp_wave * np.sin(2 * np.pi * 110.0 * t_audio + fm_modulator) +
+            0.6 * interp_var * np.sin(2 * np.pi * 330.0 * t_audio * (1.0 + interp_lum)) +
+            0.4 * interp_peak * np.sin(2 * np.pi * 660.0 * t_audio)
+        )
     elif audio_profile == "standing_wave":
-        audio_signal = np.sin(2 * np.pi * 150.0 * t_audio + interp_wave * np.pi) * np.cos(2 * np.pi * 2.0 * t_audio)
+        audio_signal = np.sin(2 * np.pi * 150.0 * t_audio + interp_wave * np.pi * (1.0 + interp_var)) * np.cos(2 * np.pi * 2.0 * t_audio * (1.0 + interp_peak))
     elif audio_profile == "photon_chime":
-        audio_signal = interp_lum * np.sin(2 * np.pi * 587.33 * t_audio + np.cumsum(interp_wave) * 0.01) + 0.3 * np.sin(2 * np.pi * 880.0 * t_audio)
+        audio_signal = interp_lum * np.sin(2 * np.pi * 587.33 * t_audio + np.cumsum(interp_wave) * 0.01) + interp_var * np.sin(2 * np.pi * 880.0 * t_audio)
     elif audio_profile == "synesthesia_fx" or heuristic == "synesthesia":
         optical_hz = 400.0 + (interp_lum * 400.0)
-        audio_signal = interp_lum * np.sin(2 * np.pi * optical_hz * t_audio) * np.sin(2 * np.pi * 55.0 * t_audio * (1.0 + interp_wave))
+        audio_signal = interp_lum * np.sin(2 * np.pi * optical_hz * t_audio + interp_var * np.pi) * np.sin(2 * np.pi * 55.0 * t_audio * (1.0 + interp_wave))
     else:
         audio_signal = interp_wave * np.sin(2 * np.pi * 220.0 * t_audio)
 
@@ -365,7 +380,7 @@ try:
         wf.setframerate(sample_rate)
         wf.writeframes(audio_pcm.tobytes())
 
-    print("[Python] Tensor physical audio and synesthesia soundmapping generated successfully.")
+    print("[Python] High-density adaptive physical audio generated successfully.")
 
 except Exception as e:
     print(f"[Python Error] Caught exception during execution: {e}")
@@ -373,7 +388,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing Crash-Resilient Python Pipeline with Operator Theory Logarithms..."
+echo -e "[*] Initializing Crash-Resilient Python Pipeline with Adaptive Audio Engine..."
 python3 /tmp/tensor_engine.py
 
 # ==============================================================================

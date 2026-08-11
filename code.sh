@@ -54,22 +54,28 @@ CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VA
 TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * 30))))")
 FPS=30
 
-# 2. PROCEDURAL EFFECTS & PROMPTS
-echo -e "\n${YELLOW}[2/6] Procedural Effects & Prompt Configuration:${NC}"
-read -p "Enter prompt configuration [soliton_core (default): Standard baseline propagation model evaluating the primary $P, E, D$ tensor subfunctions.soliton_boost: Enhances the energy amplitude multiplier and injector rate (+1.5 modifier), pushing waves toward high-energy domain boundaries.soliton_shift: Introduces a dynamic phase-shifting oscillation across frames driven by $\sin(\text{progress} \cdot \pi)$.ir_thermal or thermal: Switches the Matplotlib colormapping profile into a deep thermal-infrared band (inferno), simulating infrared heat and radiation mapping.
-
-uv_spectrum or ultraviolet: Shifts the colormap into an ultraviolet fluorescence profile (cool), simulating sensors tuned to ultra-high frequency photon emission.
-
-eye_filter: Activates a biological eye-adjustment adaptation curve that dynamically scales local luminance thresholds based on photon density.negative_mass or neg_mass: Applies operator-theory logarithmic field inversion (- \log(|Z|) \cdot \text{sign}(Z)), reversing standard electron-density distribution into negative-mass topological amplitude domains.]: " PROMPT_INPUT
+# ==============================================================================
+# 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION (COMMA-SUPPORTED)
+# ==============================================================================
+echo -e "\n${YELLOW}[2/6] Procedural Effects & Prompt Configuration (Comma-Separated Support):${NC}"
+echo "  - soliton_core    : Standard baseline evaluation of P, E, D tensor subfunctions."
+echo "  - soliton_boost   : Enhances energy amplitude multiplier & injector rate (+1.5 modifier)."
+echo "  - soliton_shift   : Introduces dynamic phase-shifting oscillation across frames."
+echo "  - ir_thermal      : Switches colormap to deep thermal-infrared band (inferno)."
+echo "  - uv_spectrum     : Shifts colormap into ultraviolet fluorescence profile (cool)."
+echo "  - eye_filter      : Dynamic biological eye-adjustment photon luminance scaling."
+echo "  - negative_mass   : Operator-theory logarithmic field inversion (-log(|Z|)*sign(Z))."
+echo ""
+read -p "Enter prompt configuration [soliton_core]: " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core}
 
-read -p "Enter full parametric seed float [1.25]: " FULL_SEED
+read -p "Enter full parametric seed float / rotational weight [1.25]: " FULL_SEED
 FULL_SEED=${FULL_SEED:-1.25}
 
-read -p "Enter spatial harmonic vector scale as x,y,z [1.0,1.0,1.0]: " HARMONIC_VEC
+read -p "Enter spatial harmonic vector scale as x,y,z (e.g. 1.0,1.0,1.0) [1.0,1.0,1.0]: " HARMONIC_VEC
 HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
 
-read -p "Enter stochastic bifurcation weight [0.01]: " BIFURCATION_WEIGHT
+read -p "Enter stochastic bifurcation weight for indecisive operator points [0.01]: " BIFURCATION_WEIGHT
 BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
 
 # 3. CAMERA ANGLES WITH MULTI-TURN / MODULO SUPPORT

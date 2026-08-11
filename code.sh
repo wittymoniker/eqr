@@ -1,3 +1,5 @@
+Bash
+
 #!/bin/bash
 # ==============================================================================
 # ADVANCED TENSOR REALITY ENGINE - 3D SELF-PHASING ROTATIONAL SEED PIPELINE
@@ -81,11 +83,47 @@ HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
 read -p "Enter stochastic bifurcation weight for indecisive operator points [0.01]: " BIFURCATION_WEIGHT
 BIFURCATION_WEIGHT=${BIFURCATION_WEIGHT:-0.01}
 
-# 3. CENTIMETER FIELD SCALE & ORIGIN-POINT CAMERA CONTROLS
-echo -e "\n${YELLOW}[3/6] Centimeter Field Scale & Origin-Point Camera Controls:${NC}"
-echo "  - Propagation Bound factor: c = 134,964,356 cm/s (Unit: cm)"
-read -p "Enter field dimension scale multiplier [1.1975807343]: " FIELD_SCALE_MULT
+# 3. CENTIMETER-BASED FIELD SCALE & SPATIAL DOMAIN SELECTOR (7 OPTIONS)
+echo -e "\n${YELLOW}[3/6] Centimeter-Based Spatial Scale & Heuristics:${NC}"
+echo "Select Base Spatial Dimension Scale Unit (Metric relative to cm):"
+echo "  1) Gigameter   (Gm  = 10^11 cm)"
+echo "  2) Megameter   (Mm  = 10^8 cm)"
+echo "  3) Kilometer   (km  = 10^5 cm)"
+echo "  4) Centimeter  (cm  = 10^0 cm)"
+echo "  5) Micrometer  (µm  = 10^-4 cm)"
+echo "  6) Nanometer   (nm  = 10^-7 cm)"
+echo "  7) Picometer   (pm  = 10^-10 cm)"
+read -p "Select spatial domain scale option [1-7, default 4]: " SPATIAL_CHOICE
+SPATIAL_CHOICE=${SPATIAL_CHOICE:-4}
+
+case "$SPATIAL_CHOICE" in
+    1) SPATIAL_BASE_VAL="1e11"; SPATIAL_LABEL="Gm" ;;
+    2) SPATIAL_BASE_VAL="1e8"; SPATIAL_LABEL="Mm" ;;
+    3) SPATIAL_BASE_VAL="1e5"; SPATIAL_LABEL="km" ;;
+    4) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
+    5) SPATIAL_BASE_VAL="1e-4"; SPATIAL_LABEL="µm" ;;
+    6) SPATIAL_BASE_VAL="1e-7"; SPATIAL_LABEL="nm" ;;
+    7) SPATIAL_BASE_VAL="1e-10"; SPATIAL_LABEL="pm" ;;
+    *) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
+esac
+
+read -p "Enter custom free-parameter multiplier for spatial grid [1.1975807343]: " FIELD_SCALE_MULT
 FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343}
+
+# Target Labeling Heuristics Selector
+echo -e "\nSelect Target Labeling Heuristic Profile:"
+echo "  1) mattervision (Density/Mass distribution field matrix overlays)"
+echo "  2) photovision  (Photon flux luminance and wavelength-band colorization)"
+echo "  3) hybrid_core  (Dual simultaneous mattervision & photovision tensor fusion)"
+read -p "Select labeling heuristic option [1-3, default 2]: " HEURISTIC_CHOICE
+HEURISTIC_CHOICE=${HEURISTIC_CHOICE:-2}
+
+case "$HEURISTIC_CHOICE" in
+    1) TARGET_HEURISTIC="mattervision" ;;
+    2) TARGET_HEURISTIC="photovision" ;;
+    3) TARGET_HEURISTIC="hybrid_core" ;;
+    *) TARGET_HEURISTIC="photovision" ;;
+esac
 
 read -p "Enter initial camera distance / zoom radius [2.0]: " CAM_DIST
 CAM_DIST=${CAM_DIST:-2.0}
@@ -97,9 +135,9 @@ read -p "Enter initial Yaw angle (degrees) [55]: " CAM_YAW
 CAM_YAW=${CAM_YAW:-55}
 
 # 4. WAVELENGTH COLORIZATION & EYE-ADJUSTMENT TRANSPARENCY MAPPING
-echo -e "\n${YELLOW}[4/6] Nanometer Wavelength Colorization & Eye-Adjustment Mapping:${NC}"
-echo "  - Simulating RGB colors based on true physical wavelengths (R: ~650nm, G: ~530nm, B: ~470nm)"
-echo "  - Natural translucency/transparency blending & dynamic frame-by-frame eye-adjustment active."
+echo -e "\n${YELLOW}[4/6] Nanometer Wavelength Colorization & Heuristic Mapping:${NC}"
+echo "  - Active Heuristic Profile : $TARGET_HEURISTIC"
+echo "  - Spatial Grid Unit        : $SPATIAL_LABEL"
 
 # 5. UNIFIED TIMESTAMP & DIRECTORY CONFIGURATION
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -107,13 +145,19 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 export OUTPUT_FILE="$SCRIPT_DIR/tensor_operator_render_$TIMESTAMP.mkv"
 export AUDIO_FILE="$SCRIPT_DIR/tensor_operator_audio_$TIMESTAMP.wav"
 
+export SPATIAL_BASE_VAL
+export SPATIAL_LABEL
+export TARGET_HEURISTIC
+export FIELD_SCALE_MULT
+
 echo -e "\n${CYAN}[+] Parameters Locked & Saved:${NC}"
 echo -e "    - Duration Spanned : $USER_UNITS $SCALE_LABEL ($CALC_DURATION_SEC physical seconds)"
 echo -e "    - Video Stretch    : $VIDEO_STRETCH_SEC seconds playback"
 echo -e "    - Total Frames     : $TOTAL_FRAMES frames at $FPS FPS"
+echo -e "    - Spatial Scale    : $SPATIAL_LABEL (Multiplier: $FIELD_SCALE_MULT)"
+echo -e "    - Heuristic Profile: ${BLUE}$TARGET_HEURISTIC${NC}"
 echo -e "    - Prompts/Effects  : $PROMPT_INPUT"
 echo -e "    - Harmonic Vector  : ($HARMONIC_VEC)"
-echo -e "    - Field Scale      : ${BLUE}134,964,356 cm/s * $FIELD_SCALE_MULT${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # Python Modeling Engine: Crash-Resilient Multi-Spectral Optical & Tensor Operator Pipeline
@@ -137,7 +181,11 @@ signal.signal(signal.SIGINT, signal_handler)
 
 try:
     c_base = 134964356.0
+    spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
+    spatial_label = os.environ.get("SPATIAL_LABEL", "cm")
+    heuristic = os.environ.get("TARGET_HEURISTIC", "photovision")
+    
     c = c_base * field_mult
 
     meum_20 = 1.1975807343385265188
@@ -163,15 +211,17 @@ try:
     hz = h_vec[2] if len(h_vec) > 2 else 1.0
 
     rng = np.random.default_rng(int(full_seed * 1000) % 2**32)
-    print(f"[Python] Optical Engine initialized. c = {c:.2f} cm/s. Active Filters: {prompts}")
+    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Heuristic: {heuristic}")
 
     plt.style.use('dark_background')
     fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor('#090d16')
 
-    x = np.linspace(-c * 1e-8, c * 1e-8, 50)
-    y = np.linspace(-c * 1e-8, c * 1e-8, 50)
+    # Scale spatial grid according to selected spatial domain unit & multiplier
+    grid_span = (c * 1e-8) * spatial_base
+    x = np.linspace(-grid_span, grid_span, 50)
+    y = np.linspace(-grid_span, grid_span, 50)
     X, Y = np.meshgrid(x, y)
 
     temp_dir = "/tmp/tensor_graph_frames"
@@ -189,6 +239,11 @@ try:
         prompt_modifier = 0.0
         use_negative_mass = False
         active_cmap = 'turbo'
+
+        if heuristic == "mattervision":
+            active_cmap = 'plasma'
+        elif heuristic == "hybrid_core":
+            active_cmap = 'viridis'
 
         for p in prompts:
             if "boost" in p:
@@ -209,13 +264,19 @@ try:
         Y_rot = X * np.sin(rot_angle) + Y * np.cos(rot_angle)
 
         P = np.sin(X_rot * c / 1e13 * hx * (full_seed + prompt_modifier)) * np.cos(Y_rot * c / 1e13 * hy - indecisive_branch)
-        E = meum_20 + 0.18 * hz * full_seed * np.exp(-((X_rot**2 + Y_rot**2) / (2 * (c * 1e-8)**2)))
+        E = meum_20 + 0.18 * hz * full_seed * np.exp(-((X_rot**2 + Y_rot**2) / (2 * (grid_span**2 + 1e-9))))
         D = 1.4252369781 * np.imag(np.exp(1j * (X_rot * hz + Y_rot * hx - c * t * full_seed + indecisive_branch)))
 
         Z = P * E + D
 
         if use_negative_mass:
             Z = -np.log(np.abs(Z) + 1e-5) * np.sign(Z)
+
+        # Heuristic tensor adjustments
+        if heuristic == "mattervision":
+            Z = np.abs(Z) * E  # Mass-density weighted field
+        elif heuristic == "hybrid_core":
+            Z = Z * (1.0 + 0.5 * np.cos(P))
 
         # Sanitize array to completely prevent NaN/Inf rendering crashes
         Z = np.nan_to_num(Z, nan=0.0, posinf=1.0, neginf=-1.0)
@@ -232,13 +293,12 @@ try:
 
         ax.clear()
         ax.set_facecolor('#090d16')
-        ax.plot_surface(X_rot * 1e6, Y_rot * 1e6, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
+        ax.plot_surface(X_rot, Y_rot, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
 
-        filter_status = "NEG-MASS LOG-INVERSION" if use_negative_mass else "STANDARD SPECTRUM"
-        ax.set_title(f"Optical Filter [{filter_status}] | c={c:.0f} cm/s | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
-        ax.set_xlabel("Spatial X (µcm)", color='white', labelpad=6)
-        ax.set_ylabel("Spatial Y (µcm)", color='white', labelpad=6)
-        ax.set_zlabel("Amplitude", color='white', labelpad=6)
+        ax.set_title(f"Heuristic [{heuristic.upper}] | Scale: {spatial_label} | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
+        ax.set_xlabel(f"Spatial X ({spatial_label})", color='white', labelpad=6)
+        ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white', labelpad=6)
+        ax.set_zlabel("Tensor Amplitude", color='white', labelpad=6)
 
         ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
 

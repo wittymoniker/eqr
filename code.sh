@@ -105,9 +105,9 @@ echo -e "    - Harmonic Vector : ($HARMONIC_VEC)"
 echo -e "    - Field Scale     : ${BLUE}134,964,356 cm/s * $FIELD_SCALE_MULT${NC}"
 echo -e "    - Local Output    : $OUTPUT_FILE\n"
 
-# Python Modeling Engine: 3D Rotational Waves, Negative-Mass Filters, & Spectral Eye-Vision Mapping
-echo -e "[*] Initializing Python Operator Theory & Multi-Spectral Optical Filters Pipeline..."
-python3 - << EOF
+# Python Modeling Engine: Crash-Resilient Multi-Spectral Optical & Tensor Operator Pipeline
+echo -e "[*] Initializing Crash-Resilient Python Pipeline with Operator Theory Logarithms..."
+python3 - << 'EOF'
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -116,34 +116,44 @@ import os
 import sys
 import traceback
 import wave
+import signal
+
+# Clean Ctrl+C / Interrupt Handler
+def signal_handler(sig, frame):
+    print("\n[Python] Interrupted cleanly by user (Ctrl+C). Saving operational state and exiting gracefully...")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 try:
     c_base = 134964356.0
-    field_mult = float(${FIELD_SCALE_MULT})
+    field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
     c = c_base * field_mult
 
     meum_20 = 1.1975807343385265188
-    fps = ${FPS}
-    total_frames = ${TOTAL_FRAMES}
-    duration_sec = float(${CALC_DURATION_SEC})
-    playback_sec = float(${VIDEO_STRETCH_SEC})
-    full_seed = float(${FULL_SEED})
-    bifurc_weight = float(${BIFURCATION_WEIGHT})
-    cam_dist = float(${CAM_DIST})
-    zoom_curve = float(${ZOOM_CURVE})
-    pitch_init = float(${CAM_PITCH})
-    yaw_init = float(${CAM_YAW})
+    fps = int(os.environ.get("FPS", "30"))
+    total_frames = int(os.environ.get("TOTAL_FRAMES", "900"))
+    duration_sec = float(os.environ.get("CALC_DURATION_SEC", "1.0"))
+    playback_sec = float(os.environ.get("VIDEO_STRETCH_SEC", "30.0"))
+    full_seed = float(os.environ.get("FULL_SEED", "1.25"))
+    bifurc_weight = float(os.environ.get("BIFURCATION_WEIGHT", "0.01"))
+    cam_dist = float(os.environ.get("CAM_DIST", "2.0"))
+    zoom_curve = float(os.environ.get("ZOOM_CURVE", "1.0"))
+    pitch_init = float(os.environ.get("CAM_PITCH", "35"))
+    yaw_init = float(os.environ.get("CAM_YAW", "55"))
 
-    # Parse comma-separated prompts and optical filters
-    prompts = [p.strip().lower() for p in "${PROMPT_INPUT}".split(',')]
-    raw_hvec = "${HARMONIC_VEC}".replace('(', '').replace(')', '').split(',')
+    prompt_input = os.environ.get("PROMPT_INPUT", "soliton_core")
+    harmonic_vec_str = os.environ.get("HARMONIC_VEC", "1.0,1.0,1.0")
+
+    prompts = [p.strip().lower() for p in prompt_input.split(',')]
+    raw_hvec = harmonic_vec_str.replace('(', '').replace(')', '').split(',')
     h_vec = [float(v.strip()) for v in raw_hvec if v.strip()]
     hx = h_vec[0] if len(h_vec) > 0 else 1.0
     hy = h_vec[1] if len(h_vec) > 1 else 1.0
     hz = h_vec[2] if len(h_vec) > 2 else 1.0
 
     rng = np.random.default_rng(int(full_seed * 1000) % 2**32)
-    print(f"[Python] Optical Engine initialized. c = {c:.2f} cm/s. Filters active: {prompts}")
+    print(f"[Python] Optical Engine initialized. c = {c:.2f} cm/s. Active Filters: {prompts}")
 
     plt.style.use('dark_background')
     fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
@@ -160,6 +170,9 @@ try:
     tensor_audio_samples = []
     sample_rate = 44100
     total_audio_frames = int(sample_rate * playback_sec)
+
+    # Determine optimal frame logging interval based on total frame count
+    log_interval = max(1, total_frames // 10)
 
     for i in range(total_frames):
         progress = i / max(1, (total_frames - 1))
@@ -181,24 +194,26 @@ try:
             elif "uv" in p or "ultraviolet" in p:
                 active_cmap = 'cool'
 
-        # 3D Self-Phasing Rotational Seed Waves
         rot_angle = t * c * 1e-7 * hx
         indecisive_branch = rng.choice([-1.0, 1.0]) * bifurc_weight * np.sin(rot_angle + full_seed)
 
         X_rot = X * np.cos(rot_angle) - Y * np.sin(rot_angle)
         Y_rot = X * np.sin(rot_angle) + Y * np.cos(rot_angle)
 
+        # P, E, D Tensor structural evaluation levels (referencing text topology)
         P = np.sin(X_rot * c / 1e13 * hx * (full_seed + prompt_modifier)) * np.cos(Y_rot * c / 1e13 * hy - indecisive_branch)
         E = meum_20 + 0.18 * hz * full_seed * np.exp(-((X_rot**2 + Y_rot**2) / (2 * (c * 1e-8)**2)))
         D = 1.4252369781 * np.imag(np.exp(1j * (X_rot * hz + Y_rot * hx - c * t * full_seed + indecisive_branch)))
 
         Z = P * E + D
 
-        # Negative Mass Field Inversion Filter (reverses electron-density equivalent into negative mass domain)
+        # Operator Theory Logarithmic / Negative Mass inversion check
         if use_negative_mass:
-            Z = -Z
+            # Field inversion replacing electron density with negative mass amplitude
+            Z = -np.log(np.abs(Z) + 1e-5) * np.sign(Z)
+        else:
+            Z = Z
 
-        # Eye-adjustment bio-luminance adaptation curve
         Z_norm = (Z - Z.min()) / (Z.max() - Z.min() + 1e-9)
         lum_adj = 1.0 + 0.2 * np.sin(progress * np.pi * 2)
         Z_adjusted = np.clip(Z_norm * lum_adj, 0.0, 1.0)
@@ -206,9 +221,9 @@ try:
         ax.clear()
         ax.set_facecolor('#090d16')
 
-        surf = ax.plot_surface(X_rot * 1e6, Y_rot * 1e6, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
+        ax.plot_surface(X_rot * 1e6, Y_rot * 1e6, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
 
-        filter_status = "NEG-MASS" if use_negative_mass else "STANDARD"
+        filter_status = "NEG-MASS LOG-INVERSION" if use_negative_mass else "STANDARD SPECTRUM"
         ax.set_title(f"Optical Filter [{filter_status}] | c={c:.0f} cm/s | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel("Spatial X (µcm)", color='white', labelpad=6)
         ax.set_ylabel("Spatial Y (µcm)", color='white', labelpad=6)
@@ -219,8 +234,9 @@ try:
         plt.tight_layout()
         plt.savefig(f"{temp_dir}/frame_{i:04d}.png", dpi=90, facecolor=fig.get_facecolor(), edgecolor='none')
 
-        if i % 50 == 0 or i == total_frames - 1:
-            print(f"[Python] Rendered frame {i+1}/{total_frames}...")
+        # Idealized interval progress reporting
+        if i % log_interval == 0 or i == total_frames - 1:
+            print(f"[Python] Idealized Progress: Rendered frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
         wave_slice = np.mean(Z)
         tensor_audio_samples.append(wave_slice)
@@ -228,7 +244,6 @@ try:
     plt.close(fig)
     print("[Python] Multi-spectral optical frames compiled successfully.")
 
-    # Audio sonification from physical tensor wave structure
     print("[Python] Synthesizing physical tensor audio sonification...")
     t_audio = np.linspace(0, playback_sec, total_audio_frames)
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)
@@ -237,7 +252,8 @@ try:
     audio_signal = audio_signal / (np.max(np.abs(audio_signal)) + 1e-9)
     audio_pcm = np.int16(audio_signal * 32767)
 
-    with wave.open('${AUDIO_FILE}', 'w') as wf:
+    audio_file_path = os.environ.get("AUDIO_FILE", "tensor_operator_audio.wav")
+    with wave.open(audio_file_path, 'w') as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(sample_rate)
@@ -246,6 +262,7 @@ try:
     print("[Python] Tensor physical audio generated successfully.")
 
 except Exception as e:
+    print(f"[Python Error] Caught exception during execution: {e}")
     traceback.print_exc()
     sys.exit(1)
 EOF

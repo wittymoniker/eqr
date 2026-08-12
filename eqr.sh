@@ -181,7 +181,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (With 0-3 Translucency/Alpha Mapping Support)
+# 5. WRITE EXTERNAL PYTHON ENGINE (Restored Dynamic Codec Fallback + 0-3 Alpha)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -480,7 +480,6 @@ try:
         Z_adjusted = np.clip(Z_norm * lum_adj, 0.0, 1.0)
         Z_adjusted = np.nan_to_num(Z_adjusted, nan=0.0)
 
-        # Apply prompted 0-3 alpha translucency mapping if requested
         if use_clip_03:
             alpha_map = np.clip(Z_adjusted * 3.0, 0.0, 1.0)
             cmap_obj = plt.get_cmap(active_cmap)
@@ -546,7 +545,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing `eqr.sh` Pipeline with Hybrid Core Default & 0-3 Alpha Prompt Option..."
+echo -e "[*] Initializing `eqr.sh` Pipeline with Dynamic Encoder Fallback & 0-3 Alpha Option..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py

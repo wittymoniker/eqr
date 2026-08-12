@@ -112,7 +112,18 @@ case "$SPATIAL_CHOICE" in
     7) SPATIAL_BASE_VAL="1e-10"; SPATIAL_LABEL="pm" ;;
     *) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
 esac
+read -p "Enter spatial X coordinate offset [0.0]: " OFFSET_X
+OFFSET_X=${OFFSET_X:-0.0}
 
+read -p "Enter spatial Y coordinate offset [0.0]: " OFFSET_Y
+OFFSET_Y=${OFFSET_Y:-0.0}
+
+read -p "Enter spatial Z vertical shift offset [0.0]: " OFFSET_Z
+OFFSET_Z=${OFFSET_Z:-0.0}
+
+export OFFSET_X
+export OFFSET_Y
+export OFFSET_Z
 read -p "Enter custom free-parameter multiplier for spatial grid [1.1975807343385265188]: " FIELD_SCALE_MULT
 FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343385265188}
 
@@ -230,7 +241,9 @@ try:
     bifurc_weight = float(os.environ.get("BIFURCATION_WEIGHT", "0.01"))
     pitch_init = float(os.environ.get("CAM_PITCH", "35"))
     yaw_init = float(os.environ.get("CAM_YAW", "55"))
-
+offset_x = float(os.environ.get("OFFSET_X", "0.0"))
+offset_y = float(os.environ.get("OFFSET_Y", "0.0"))
+offset_z = float(os.environ.get("OFFSET_Z", "0.0"))
     prompt_input = os.environ.get("PROMPT_INPUT", "soliton_core")
     harmonic_vec_str = os.environ.get("HARMONIC_VEC", "1.0,1.0,1.0")
 

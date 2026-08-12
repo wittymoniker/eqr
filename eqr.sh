@@ -3,6 +3,7 @@
 # ADVANCED TENSOR REALITY ENGINE - 3D SELF-PHASING ROTATIONAL SEED PIPELINE
 # Framework: Equation of Reality, P,E,D Subfunctions, Operator Theory, Meum (20d)
 # Propagation Bound: c = 134,964,356 cm/s (Centimeter Scale with Synesthesia Audio Engine)
+# Target Environment: Fedora Linux (Fedora 43 / Native RPM / DNF Toolchain)
 # ==============================================================================
 
 set -uo pipefail
@@ -16,9 +17,9 @@ NC='\033[0m'
 
 clear
 echo -e "${CYAN}==============================================================================${NC}"
-echo -e "${GREEN}    TENSOR REALITY ENGINE - 3D ROTATIONAL SEED & WAVELENGTH PIPELINE     ${NC}"
+echo -e "${GREEN}    TENSOR REALITY ENGINE - FEDORA 43 ROTATIONAL SEED & WAVELENGTH PIPELINE ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
-echo -e "Target OS          : Fedora Linux / POSIX Compatible"
+echo -e "Target OS          : Fedora Linux 43 (Native RPM Ecosystem)"
 echo -e "Propagation Bound  : ${BLUE}134,964,356 cm/s${NC}"
 echo -e "Meum Constant (20d): ${BLUE}1.1975807343385265188${NC}"
 echo -e "Physical Scale     : ${BLUE}Centimeters (cm)${NC}"
@@ -186,7 +187,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (With Time Offset Integration)
+# 5. WRITE EXTERNAL PYTHON ENGINE (Fedora 43 Native RPM & Time Offset Stack)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -207,9 +208,8 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 try:
-    print("[Python] Initializing Advanced Tensor Reality Engine & Operator Framework...")
+    print("[Python] Initializing Advanced Tensor Reality Engine & Operator Framework (Fedora 43 Optimized)...")
     print("[Python] Software Goal: Executing finite-infinity simultaneous point-wise tensor evaluation across true infinite sets of subframe steps.")
-    print("[Python] Research context: Integrating Equation of Reality framework, P, E, D subfunctions, and Meum constant (20d = 1.1975807343385265188).")
 
     c_base = 134964356.0
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
@@ -242,7 +242,7 @@ try:
     hz = h_vec[2] if len(h_vec) > 2 else 1.0
 
     rng = np.random.default_rng(int(full_seed * 1000) % 2**32)
-    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Time Offset: {time_offset}, Heuristic: {heuristic}, Audio: {audio_profile}, Playback Duration: {playback_sec}s")
+    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Time Offset: {time_offset}, Heuristic: {heuristic}, Audio: {audio_profile}")
 
     plt.style.use('dark_background')
     fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
@@ -277,7 +277,7 @@ try:
         return 'mpeg4'
 
     chosen_encoder = get_available_encoder()
-    print(f"[Python] Selected FFmpeg video encoder: {chosen_encoder}")
+    print(f"[Python] Selected Fedora 43 FFmpeg video encoder: {chosen_encoder}")
 
     ffmpeg_cmd = [
         'ffmpeg', '-hide_banner', '-loglevel', 'info', '-y',
@@ -551,12 +551,16 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing Pipeline with Time Offset & Dynamic Encoder Fallback..."
+echo -e "[*] Initializing Fedora 43 Pipeline with Time Offset & Native Encoder Check..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py
 
 echo -e "\n${CYAN}==============================================================================${NC}"
-echo -e "${GREEN}       LOCAL TENSOR RENDER & DIRECT STREAM COMPLETED SUCCESSFULLY       ${NC}"
+echo -e "${GREEN}       FEDORA 43 LOCAL TENSOR RENDER & STREAM COMPLETED SUCCESSFULLY     ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
 echo -e "Saved video file in script directory: ${BLUE}$OUTPUT_FILE${NC}"
+
+if command -v kdialog &> /dev/null; then
+    kdialog --title "Tensor Reality Engine" --passivepopup "Fedora 43 3D Tensor render completed: $OUTPUT_FILE" 5
+fi

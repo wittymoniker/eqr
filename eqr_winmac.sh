@@ -519,8 +519,8 @@ try:
             print(f"[Python] Piped simultaneous tensor frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
     plt.close(fig)
-    p_ffmpeg.stdin.close()
     
+    # Let communicate() manage the stdin closure and process termination cleanly
     stdout, stderr = p_ffmpeg.communicate()
     if p_ffmpeg.returncode != 0:
         print(f"[FFmpeg Warning/Error Log]:\n{stderr.decode('utf-8', errors='ignore')}")

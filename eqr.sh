@@ -115,15 +115,15 @@ echo "  1) mattervision (Density/Mass distribution field matrix overlays)"
 echo "  2) photovision  (Photon flux luminance and wavelength-band colorization)"
 echo "  3) hybrid_core  (Dual simultaneous mattervision & photovision tensor fusion)"
 echo "  4) synesthesia  (Cross-modal sensory engine: light is heard, sound is seen)"
-read -p "Select heuristic option [1-4, default 4]: " HEURISTIC_CHOICE
-HEURISTIC_CHOICE=${HEURISTIC_CHOICE:-4}
+read -p "Select heuristic option [1-4, default 3]: " HEURISTIC_CHOICE
+HEURISTIC_CHOICE=${HEURISTIC_CHOICE:-3}
 
 case "$HEURISTIC_CHOICE" in
     1) TARGET_HEURISTIC="mattervision" ;;
     2) TARGET_HEURISTIC="photovision" ;;
     3) TARGET_HEURISTIC="hybrid_core" ;;
     4) TARGET_HEURISTIC="synesthesia" ;;
-    *) TARGET_HEURISTIC="synesthesia" ;;
+    *) TARGET_HEURISTIC="hybrid_core" ;;
 esac
 
 echo -e "\n${YELLOW}[3.1] Select Acoustic Audio Sonification Profile (Ears Option):${NC}"

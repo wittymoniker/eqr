@@ -132,15 +132,15 @@ echo "  1) harmonic_drone  (Resonant multi-harmonic carrier chord synthesized fr
 echo "  2) standing_wave   (Phase-coupled frequency sweeps mimicking acoustic cavity resonance)"
 echo "  3) photon_chime    (High-frequency transient scintillation pulses mapped from optical flux)"
 echo "  4) synesthesia_fx  (Cross-modal audio: direct optical spectrum wavelength-to-frequency translation)"
-read -p "Select audio sonification profile [1-4, default 4]: " AUDIO_CHOICE
-AUDIO_CHOICE=${AUDIO_CHOICE:-4}
+read -p "Select audio sonification profile [1-4, default 2]: " AUDIO_CHOICE
+AUDIO_CHOICE=${AUDIO_CHOICE:-2}
 
 case "$AUDIO_CHOICE" in
     1) AUDIO_PROFILE="harmonic_drone" ;;
     2) AUDIO_PROFILE="standing_wave" ;;
     3) AUDIO_PROFILE="photon_chime" ;;
     4) AUDIO_PROFILE="synesthesia_fx" ;;
-    *) AUDIO_PROFILE="synesthesia_fx" ;;
+    *) AUDIO_PROFILE="standing_wave" ;;
 esac
 
 read -p "Enter initial camera distance / zoom radius [2.0]: " CAM_DIST

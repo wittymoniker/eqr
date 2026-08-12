@@ -2,7 +2,7 @@
 # ==============================================================================
 # ADVANCED TENSOR REALITY ENGINE - MASTER EDITION (FEDORA / LINUX)
 # Framework: Equation of Reality, P,E,D Subfunctions, Operator Theory, Meum (20d)
-# Features: Time Offset, XYZ Meshgrid Translation, 0-3 Alpha Map, Dynamic Codec
+# Features: Visible Numeric Entries, Time Offset, XYZ Meshgrid, 0-3 Alpha Map
 # ==============================================================================
 
 set -uo pipefail
@@ -15,18 +15,18 @@ NC='\033[0m'
 
 clear
 echo -e "${CYAN}==============================================================================${NC}"
-echo -e "${GREEN}    TENSOR REALITY ENGINE - MASTER FEDORA PIPELINE [XYZ MESHGRID]      ${NC}"
+echo -e "${GREEN}    TENSOR REALITY ENGINE - MASTER FEDORA PIPELINE [VERIFIED LABELS]     ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
 
 # 1. TIMESCALE & TIME OFFSET CONFIGURATION
-echo -e "${YELLOW}[1/6] Select Base Time Scale Unit:${NC}"
-echo "  1) Gigasecond (1 Gs = 10^9 s)"
-echo "  2) Megasecond (1 Ms = 10^6 s)"
-echo "  3) Second     (1 s  = 1.0 s)"
-echo "  4) Millisecond(1 ms = 10^-3 s)"
-echo "  5) Microsecond(1 µs = 10^-6 s)"
-echo "  6) Nanosecond (1 ns = 10^-9 s)"
-echo "  7) Picosecond (1 ps = 10^-12 s)"
+echo -e "\n${YELLOW}[1/6] Select Base Time Scale Unit:${NC}"
+echo "  [1] Gigasecond  (1 Gs  = 10^9 seconds)"
+echo "  [2] Megasecond  (1 Ms  = 10^6 seconds)"
+echo "  [3] Second      (1 s   = 1.0 seconds)"
+echo "  [4] Millisecond (1 ms  = 10^-3 seconds)"
+echo "  [5] Microsecond (1 µs  = 10^-6 seconds) [DEFAULT]"
+echo "  [6] Nanosecond  (1 ns  = 10^-9 seconds)"
+echo "  [7] Picosecond  (1 ps  = 10^-12 seconds)"
 read -p "Select timescale unit option [1-7, default 5]: " TIME_CHOICE
 TIME_CHOICE=${TIME_CHOICE:-5}
 
@@ -41,13 +41,15 @@ case "$TIME_CHOICE" in
     *) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
 esac
 
-read -p "Enter number of units to span [2.5]: " USER_UNITS
+echo -e "-> Active Scale Unit Selected: ${BLUE}${SCALE_LABEL}${NC}"
+
+read -p "Enter number of units to span [numeric, default 2.5]: " USER_UNITS
 USER_UNITS=${USER_UNITS:-2.5}
 
-read -p "Enter working time offset shift value [0.0]: " TIME_OFFSET
+read -p "Enter working time offset shift value [numeric offset, default 0.0]: " TIME_OFFSET
 TIME_OFFSET=${TIME_OFFSET:-0.0}
 
-read -p "Enter output video playback stretch duration in real seconds [30.0]: " VIDEO_STRETCH_SEC
+read -p "Enter output video playback stretch duration in real seconds [numeric, default 30.0]: " VIDEO_STRETCH_SEC
 VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
 
 CALC_DURATION_SEC=$(python3 -c "print(float('${USER_UNITS}') * float('${SCALE_VAL}'))")
@@ -59,11 +61,12 @@ export TIME_OFFSET
 
 # 2. XYZ MESHGRID & SPATIAL OFFSET CONFIGURATION
 echo -e "\n${YELLOW}[2/6] Spatial Coordinate & Volumetric Offset Configuration:${NC}"
-read -p "Enter spatial X meshgrid offset shift [0.0]: " OFFSET_X
+echo "  -> Enter numeric offsets to shift the center coordinates of the volumetric domain."
+read -p "Enter spatial X meshgrid offset shift [numeric, default 0.0]: " OFFSET_X
 OFFSET_X=${OFFSET_X:-0.0}
-read -p "Enter spatial Y meshgrid offset shift [0.0]: " OFFSET_Y
+read -p "Enter spatial Y meshgrid offset shift [numeric, default 0.0]: " OFFSET_Y
 OFFSET_Y=${OFFSET_Y:-0.0}
-read -p "Enter spatial Z vertical shift offset [0.0]: " OFFSET_Z
+read -p "Enter spatial Z vertical shift offset [numeric, default 0.0]: " OFFSET_Z
 OFFSET_Z=${OFFSET_Z:-0.0}
 
 export OFFSET_X
@@ -71,23 +74,26 @@ export OFFSET_Y
 export OFFSET_Z
 
 # 3. PROCEDURAL EFFECTS & PROMPT CONFIGURATION
-echo -e "\n${YELLOW}[3/6] Procedural Effects & Prompt Configuration:${NC}"
-echo "  - soliton_core    : Standard baseline evaluation of P, E, D tensor subfunctions."
-echo "  - soliton_boost   : Enhances energy amplitude multiplier & injector rate (+1.5 modifier)."
-echo "  - soliton_shift   : Introduces dynamic phase-shifting oscillation across frames."
-echo "  - clip_03         : Dynamically clips and maps Z-surface alpha range directly across 0 to 3."
-echo "  - negative_mass   : Operator-theory logarithmic field inversion (-log(|Z|)*sign(Z))."
-read -p "Enter prompt configuration [soliton_core,soliton_shift,clip_03]: " PROMPT_INPUT
+echo -e "\n${YELLOW}[3/6] Procedural Effects & Prompt Configuration (Comma-Separated):${NC}"
+echo "  Available Operators / Modifiers:"
+echo "    - soliton_core    : Standard baseline evaluation of P, E, D tensor subfunctions."
+echo "    - soliton_boost   : Enhances energy amplitude multiplier & injector rate (+1.5 modifier)."
+echo "    - soliton_shift   : Introduces dynamic phase-shifting oscillation across frames."
+echo "    - clip_03         : Dynamically clips and maps Z-surface alpha range directly across 0 to 3."
+echo "    - negative_mass   : Operator-theory logarithmic field inversion (-log(|Z|)*sign(Z))."
+echo "    - ir_thermal      : Switches colormap to deep thermal-infrared band (inferno)."
+echo "    - uv_spectrum     : Shifts colormap into ultraviolet fluorescence profile (cool)."
+read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03]: " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core,soliton_shift,clip_03}
 
-read -p "Enter full parametric seed float / rotational weight [1.1975807343]: " FULL_SEED
+read -p "Enter full parametric seed float / rotational weight [numeric float, default 1.1975807343]: " FULL_SEED
 FULL_SEED=${FULL_SEED:-1.1975807343}
 
-read -p "Enter spatial harmonic vector scale as x,y,z [1.0,1.0,1.0]: " HARMONIC_VEC
+read -p "Enter spatial harmonic vector scale as x,y,z [comma-separated, default 1.0,1.0,1.0]: " HARMONIC_VEC
 HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
 
-# 4. FIELD SCALE & HEURISTICS
-read -p "Enter custom free-parameter multiplier for spatial grid [1.1975807343385265188]: " FIELD_SCALE_MULT
+# 4. FIELD SCALE & METRICS
+read -p "Enter custom free-parameter multiplier for spatial grid [numeric, default 1.1975807343385265188]: " FIELD_SCALE_MULT
 FIELD_SCALE_MULT=${FIELD_SCALE_MULT:-1.1975807343385265188}
 
 export SPATIAL_BASE_VAL="1.0"
@@ -106,8 +112,8 @@ export OUTPUT_FILE="$SCRIPT_DIR/tensor_master_render_$TIMESTAMP.mkv"
 export AUDIO_FILE="$SCRIPT_DIR/tensor_master_audio_$TIMESTAMP.wav"
 
 echo -e "\n${CYAN}[+] Master Parameters Locked:${NC}"
-echo -e "    - Time Offset      : $TIME_OFFSET units"
-echo -e "    - XYZ Offsets      : X=$OFFSET_X, Y=$OFFSET_Y, Z=$OFFSET_Z"
+echo -e "    - Time Offset      : ${TIME_OFFSET} units"
+echo -e "    - XYZ Offsets      : X=${OFFSET_X}, Y=${OFFSET_Y}, Z=${OFFSET_Z}"
 echo -e "    - Output Target    : $OUTPUT_FILE\n"
 
 # ==============================================================================
@@ -137,8 +143,6 @@ try:
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
     spatial_label = os.environ.get("SPATIAL_LABEL", "cm")
-    heuristic = os.environ.get("TARGET_HEURISTIC", "hybrid_core")
-    audio_profile = os.environ.get("AUDIO_PROFILE", "photon_chime")
     
     c = c_base * field_mult
     fps = int(os.environ.get("FPS", "30"))
@@ -152,9 +156,6 @@ try:
     offset_z = float(os.environ.get("OFFSET_Z", "0.0"))
 
     full_seed = float(os.environ.get("FULL_SEED", "1.25"))
-    pitch_init = 35.0
-    yaw_init = 55.0
-
     prompt_input = os.environ.get("PROMPT_INPUT", "soliton_core")
     prompts = [p.strip().lower() for p in prompt_input.split(',')]
     
@@ -171,11 +172,10 @@ try:
 
     grid_span = (c * 1e-8) * spatial_base
     
-    # Full 3D Volumetric Meshgrid Integration (X, Y, Z space coordinates)
+    # Meshgrid with explicit XYZ offset initialization
     x = np.linspace(-grid_span, grid_span, 40) + offset_x
     y = np.linspace(-grid_span, grid_span, 40) + offset_y
-    z_coords = np.linspace(-grid_span, grid_span, 40) + offset_z
-    X, Y = np.meshgrid(x, y) # Primary surface projection grid
+    X, Y = np.meshgrid(x, y)
 
     output_file = os.environ.get("OUTPUT_FILE", "tensor_master_render.mkv")
     audio_file_path = os.environ.get("AUDIO_FILE", "tensor_master_audio.wav")
@@ -188,9 +188,8 @@ try:
     def get_available_encoder():
         try:
             res = subprocess.run(['ffmpeg', '-encoders'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            encoders = res.stdout
-            if 'libx264' in encoders: return 'libx264'
-            elif 'libsvtav1' in encoders: return 'libsvtav1'
+            if 'libx264' in res.stdout: return 'libx264'
+            elif 'libsvtav1' in res.stdout: return 'libsvtav1'
         except Exception:
             pass
         return 'mpeg4'
@@ -209,7 +208,6 @@ try:
         output_file
     ]
 
-    # Pre-calculate audio stream samples with time offset
     sample_rate = 44100
     total_audio_frames = int(sample_rate * playback_sec)
     tensor_audio_samples = []
@@ -284,7 +282,6 @@ try:
         z_min, z_max = Z.min(), Z.max()
         Z_norm = np.zeros_like(Z) if np.isclose(z_min, z_max) else (Z - z_min) / (z_max - z_min + 1e-9)
 
-        # Apply Z vertical shift offset explicitly to the output height field matrix
         lum_adj = 1.0 + 0.2 * np.sin(progress * np.pi * 2)
         Z_adjusted = np.clip(Z_norm * lum_adj, 0.0, 1.0) + offset_z
 
@@ -300,25 +297,24 @@ try:
         ax.set_facecolor('#090d16')
         ax.plot_surface(X_rot, Y_rot, Z_adjusted, facecolors=rgba_face if use_clip_03 else None, cmap=None if use_clip_03 else active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
 
-        ax.set_title(f"MASTER ENGINE | Offset T={t*1e6:.2f}µs | XYZ({offset_x},{offset_y},{offset_z})", color='#00ffcc', fontsize=9, fontweight='bold')
+        ax.set_title(f"MASTER | Time Offset T={t*1e6:.2f}µs | XYZ=({offset_x},{offset_y},{offset_z})", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white')
         ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white')
         ax.set_zlabel(f"Spatial Z ({spatial_label})", color='white')
-        ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
+        ax.view_init(elev=35.0 + i * 0.2, azim=55.0 + (i * 0.8))
 
         fig.set_size_inches(10, 6)
         plt.tight_layout()
         fig.canvas.draw()
 
-        buffer_bytes = bytes(fig.canvas.buffer_rgba())
-        p_ffmpeg.stdin.write(buffer_bytes)
+        p_ffmpeg.stdin.write(bytes(fig.canvas.buffer_rgba()))
         p_ffmpeg.stdin.flush()
 
         if i % log_interval == 0 or i == total_frames - 1:
             print(f"[Python] Rendered master frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
     plt.close(fig)
-    stdout, stderr = p_ffmpeg.communicate()
+    p_ffmpeg.communicate()
 
     if os.path.exists(audio_file_path):
         os.remove(audio_file_path)

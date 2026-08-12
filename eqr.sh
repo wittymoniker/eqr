@@ -180,7 +180,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (Direct Data Stream Pipe with Stride/Stderr Capture)
+# 5. WRITE EXTERNAL PYTHON ENGINE (With Dynamic Codec Fallback)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -251,10 +251,26 @@ try:
     audio_file_path = os.environ.get("AUDIO_FILE", "tensor_operator_audio.wav")
 
     fig.canvas.draw()
-    # Force even dimensions to prevent libsvtav1 / libx264 stride truncation assertion faults
     w, h = int(fig.get_figwidth() * fig.dpi), int(fig.get_figheight() * fig.dpi)
     w = w if w % 2 == 0 else w + 1
     h = h if h % 2 == 0 else h + 1
+
+    def get_available_encoder():
+        try:
+            res = subprocess.run(['ffmpeg', '-encoders'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            encoders = res.stdout
+            if 'libsvtav1' in encoders:
+                return 'libsvtav1'
+            elif 'libx264' in encoders:
+                return 'libx264'
+            elif 'mpeg4' in encoders:
+                return 'mpeg4'
+        except Exception:
+            pass
+        return 'mpeg4'
+
+    chosen_encoder = get_available_encoder()
+    print(f"[Python] Selected FFmpeg video encoder: {chosen_encoder}")
 
     ffmpeg_cmd = [
         'ffmpeg', '-hide_banner', '-loglevel', 'info', '-y',
@@ -262,7 +278,7 @@ try:
         '-s', f'{w}x{h}',
         '-pix_fmt', 'rgba', '-r', str(fps), '-i', '-',
         '-i', audio_file_path,
-        '-c:v', 'libsvtav1', '-crf', '28', '-pix_fmt', 'yuv420p',
+        '-c:v', chosen_encoder, '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '128k',
         output_file
     ]
@@ -472,12 +488,10 @@ try:
 
         ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
 
-        # Explicitly lock figure geometry limits per render pass to avoid canvas size jitter
         fig.set_size_inches(10, 6)
         plt.tight_layout()
         fig.canvas.draw()
         
-        # Check if FFmpeg process crashed early
         if p_ffmpeg.poll() is not None:
             stderr_output = p_ffmpeg.stderr.read().decode('utf-8', errors='ignore')
             raise RuntimeError(f"FFmpeg process terminated prematurely with exit code {p_ffmpeg.returncode}. Stderr: {stderr_output}")
@@ -487,7 +501,6 @@ try:
         buffer_bytes = bytes(rgba_buffer)
         
         if len(buffer_bytes) != expected_bytes:
-            # Slice or pad precisely to match expected width/height byte stride exactly
             if len(buffer_bytes) > expected_bytes:
                 buffer_bytes = buffer_bytes[:expected_bytes]
             else:
@@ -506,7 +519,6 @@ try:
     plt.close(fig)
     p_ffmpeg.stdin.close()
     
-    # Catch any remaining stderr on clean finish
     stdout, stderr = p_ffmpeg.communicate()
     if p_ffmpeg.returncode != 0:
         print(f"[FFmpeg Warning/Error Log]:\n{stderr.decode('utf-8', errors='ignore')}")
@@ -522,7 +534,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing `eqr.sh` with Robust Stride-Guarded Stream Pipeline..."
+echo -e "[*] Initializing `eqr.sh` Pipeline with Dynamic Encoder Fallback..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py

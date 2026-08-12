@@ -181,7 +181,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (Direct Data Stream Pipe with Fixed Stride)
+# 5. WRITE EXTERNAL PYTHON ENGINE (Direct Stream with Stride Guard & Stderr Catch)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -252,18 +252,18 @@ try:
     audio_file_path = os.environ.get("AUDIO_FILE", "tensor_operator_audio.wav")
 
     fig.canvas.draw()
-    # Lock exact strict integer dimensions to prevent stride mismatch/broken pipe after frame 1
     w, h = int(fig.get_figwidth() * fig.dpi), int(fig.get_figheight() * fig.dpi)
+    w = w if w % 2 == 0 else w + 1
+    h = h if h % 2 == 0 else h + 1
 
     ffmpeg_cmd = [
-        'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
+        'ffmpeg', '-hide_banner', '-loglevel', 'info', '-y',
         '-f', 'rawvideo', '-vcodec', 'rawvideo',
         '-s', f'{w}x{h}',
         '-pix_fmt', 'rgba', '-r', str(fps), '-i', '-',
         '-i', audio_file_path,
         '-c:v', 'libx264', '-crf', '23', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '128k',
-        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
         output_file
     ]
 
@@ -472,20 +472,40 @@ try:
 
         ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
 
+        fig.set_size_inches(10, 6)
         plt.tight_layout()
         fig.canvas.draw()
         
+        if p_ffmpeg.poll() is not None:
+            stderr_output = p_ffmpeg.stderr.read().decode('utf-8', errors='ignore')
+            raise RuntimeError(f"FFmpeg process terminated prematurely with exit code {p_ffmpeg.returncode}. Stderr: {stderr_output}")
+
         rgba_buffer = fig.canvas.buffer_rgba()
-        # Force strict safe bytes casting to safeguard against trailing padding chunk choke points
-        p_ffmpeg.stdin.write(bytes(rgba_buffer))
-        p_ffmpeg.stdin.flush()
+        expected_bytes = w * h * 4
+        buffer_bytes = bytes(rgba_buffer)
+        
+        if len(buffer_bytes) != expected_bytes:
+            if len(buffer_bytes) > expected_bytes:
+                buffer_bytes = buffer_bytes[:expected_bytes]
+            else:
+                buffer_bytes += b'\x00' * (expected_bytes - len(buffer_bytes))
+
+        try:
+            p_ffmpeg.stdin.write(buffer_bytes)
+            p_ffmpeg.stdin.flush()
+        except BrokenPipeError:
+            stderr_output = p_ffmpeg.stderr.read().decode('utf-8', errors='ignore')
+            raise RuntimeError(f"FFmpeg broken pipe on frame {i+1}. Encoder diagnostic log:\n{stderr_output}")
 
         if i % log_interval == 0 or i == total_frames - 1:
             print(f"[Python] Piped simultaneous tensor frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
     plt.close(fig)
     p_ffmpeg.stdin.close()
-    p_ffmpeg.wait()
+    
+    stdout, stderr = p_ffmpeg.communicate()
+    if p_ffmpeg.returncode != 0:
+        print(f"[FFmpeg Warning/Error Log]:\n{stderr.decode('utf-8', errors='ignore')}")
 
     if os.path.exists(audio_file_path):
         os.remove(audio_file_path)
@@ -498,7 +518,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing Cross-Platform POSIX Pipeline (macOS / WSL Ready)..."
+echo -e "[*] Initializing macOS / WSL Pipeline with Robust Stride-Guarded Stream..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py

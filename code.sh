@@ -83,7 +83,7 @@ FULL_SEED=${FULL_SEED:-1.25}
 read -p "Enter spatial homogeneity harmonic vector as x,y,z (e.g. 1.0,1.0,1.0) [1.0,1.0,1.0]: " HARMONIC_VEC
 HARMONIC_VEC=${HARMONIC_VEC:-1.0,1.0,1.0}
 
-read -p "Enter infinite increment resolution factor (steps per frame cycle) [12]: " INFINITE_STEPS
+read -p "Enter infinite increment resolution factor (steps per frame cycle) [134964356]: " INFINITE_STEPS
 INFINITE_STEPS=${INFINITE_STEPS:-12}
 export INFINITE_STEPS
 

@@ -50,6 +50,9 @@ esac
 read -p "Enter number of units to span [2.5]: " USER_UNITS
 USER_UNITS=${USER_UNITS:-2.5}
 
+read -p "Enter working time offset shift value [0.0]: " TIME_OFFSET
+TIME_OFFSET=${TIME_OFFSET:-0.0}
+
 read -p "Enter output video playback stretch duration in real seconds [30.0]: " VIDEO_STRETCH_SEC
 VIDEO_STRETCH_SEC=${VIDEO_STRETCH_SEC:-30.0}
 
@@ -58,6 +61,7 @@ FPS=30
 export TOTAL_FRAMES=$(python3 -c "print(int(max(30, round(float($VIDEO_STRETCH_SEC) * float($FPS)))))")
 export CALC_DURATION_SEC
 export VIDEO_STRETCH_SEC
+export TIME_OFFSET
 
 # ==============================================================================
 # 2. PROCEDURAL EFFECTS & PROMPT CONFIGURATION
@@ -173,6 +177,7 @@ export HARMONIC_VEC
 
 echo -e "\n${CYAN}[+] Parameters Locked & Saved:${NC}"
 echo -e "    - Duration Spanned : $USER_UNITS $SCALE_LABEL ($CALC_DURATION_SEC physical seconds)"
+echo -e "    - Time Offset Shift: $TIME_OFFSET units"
 echo -e "    - Video Stretch    : $VIDEO_STRETCH_SEC seconds playback"
 echo -e "    - Total Frames     : $TOTAL_FRAMES frames at $FPS FPS"
 echo -e "    - Spatial Scale    : $SPATIAL_LABEL (Multiplier: $FIELD_SCALE_MULT)"
@@ -181,7 +186,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (Restored Dynamic Codec Fallback + 0-3 Alpha)
+# 5. WRITE EXTERNAL PYTHON ENGINE (With Time Offset Integration)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -220,6 +225,7 @@ try:
     total_frames = int(os.environ.get("TOTAL_FRAMES", "900"))
     duration_sec = float(os.environ.get("CALC_DURATION_SEC", "1.0"))
     playback_sec = float(os.environ.get("VIDEO_STRETCH_SEC", "30.0"))
+    time_offset = float(os.environ.get("TIME_OFFSET", "0.0"))
     full_seed = float(os.environ.get("FULL_SEED", "1.25"))
     bifurc_weight = float(os.environ.get("BIFURCATION_WEIGHT", "0.01"))
     pitch_init = float(os.environ.get("CAM_PITCH", "35"))
@@ -236,7 +242,7 @@ try:
     hz = h_vec[2] if len(h_vec) > 2 else 1.0
 
     rng = np.random.default_rng(int(full_seed * 1000) % 2**32)
-    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Heuristic: {heuristic}, Audio: {audio_profile}, Playback Duration: {playback_sec}s")
+    print(f"[Python] Optical Engine initialized. Scale Unit: {spatial_label}, Time Offset: {time_offset}, Heuristic: {heuristic}, Audio: {audio_profile}, Playback Duration: {playback_sec}s")
 
     plt.style.use('dark_background')
     fig = plt.figure(figsize=(10, 6), facecolor='#090d16')
@@ -260,10 +266,10 @@ try:
         try:
             res = subprocess.run(['ffmpeg', '-encoders'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             encoders = res.stdout
-            if 'libsvtav1' in encoders:
-                return 'libsvtav1'
-            elif 'libx264' in encoders:
+            if 'libx264' in encoders:
                 return 'libx264'
+            elif 'libsvtav1' in encoders:
+                return 'libsvtav1'
             elif 'mpeg4' in encoders:
                 return 'mpeg4'
         except Exception:
@@ -296,7 +302,7 @@ try:
 
     for i in range(total_frames):
         progress = i / max(1, (total_frames - 1))
-        t = progress * duration_sec
+        t = (progress * duration_sec) + time_offset
 
         prompt_modifier = 0.0
         use_negative_mass = False
@@ -392,7 +398,7 @@ try:
 
     for i in range(total_frames):
         progress = i / max(1, (total_frames - 1))
-        t = progress * duration_sec
+        t = (progress * duration_sec) + time_offset
 
         prompt_modifier = 0.0
         use_negative_mass = False
@@ -545,7 +551,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing `eqr.sh` Pipeline with Dynamic Encoder Fallback & 0-3 Alpha Option..."
+echo -e "[*] Initializing Pipeline with Time Offset & Dynamic Encoder Fallback..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py
@@ -554,7 +560,3 @@ echo -e "\n${CYAN}==============================================================
 echo -e "${GREEN}       LOCAL TENSOR RENDER & DIRECT STREAM COMPLETED SUCCESSFULLY       ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
 echo -e "Saved video file in script directory: ${BLUE}$OUTPUT_FILE${NC}"
-
-if command -v kdialog &> /dev/null; then
-    kdialog --title "Tensor Reality Engine" --passivepopup "3D Rotational Tensor simulation piped successfully: $OUTPUT_FILE" 5
-fi

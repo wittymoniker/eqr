@@ -18,13 +18,13 @@ clear
 echo -e "${CYAN}==============================================================================${NC}"
 echo -e "${GREEN}    TENSOR REALITY ENGINE - 3D ROTATIONAL SEED & WAVELENGTH PIPELINE     ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
-echo -e "Target OS          : Fedora Linux (KDE Plasma Native)"
+echo -e "Target OS          : Fedora Linux / POSIX Compatible"
 echo -e "Propagation Bound  : ${BLUE}134,964,356 cm/s${NC}"
 echo -e "Meum Constant (20d): ${BLUE}1.1975807343385265188${NC}"
 echo -e "Physical Scale     : ${BLUE}Centimeters (cm)${NC}"
 echo -e "${CYAN}------------------------------------------------------------------------------${NC}\n"
 
-# 1. TIMESCALE & RATIO CONFIGURATION (Optimized Defaults)
+# 1. TIMESCALE & RATIO CONFIGURATION
 echo -e "${YELLOW}[1/6] Select Base Time Scale Unit:${NC}"
 echo "  1) Gigasecond  (1 Gs  = 10^9 s)"
 echo "  2) Megasecond  (1 Ms  = 10^6 s)"
@@ -180,7 +180,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (Direct Data Stream Pipe to FFmpeg)
+# 5. WRITE EXTERNAL PYTHON ENGINE (Direct Data Stream Pipe with Stride Lock)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -251,7 +251,8 @@ try:
     audio_file_path = os.environ.get("AUDIO_FILE", "tensor_operator_audio.wav")
 
     fig.canvas.draw()
-    w, h = fig.canvas.get_width_height()
+    # Lock exact dimensions to prevent stride mismatch / broken pipe after frame 1
+    w, h = int(fig.get_figwidth() * fig.dpi), int(fig.get_figheight() * fig.dpi)
 
     ffmpeg_cmd = [
         'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
@@ -302,7 +303,6 @@ try:
         ]
         finite_infinity_bound = 1e6
 
-        # P subfunction evaluation (Exact User Implementation)
         P_sum = np.zeros_like(X_rot)
         for idx_i, (val_i, off_i, h_i, _) in enumerate(dims):
             for idx_j, (val_j, off_j, h_j, _) in enumerate(dims):
@@ -311,7 +311,6 @@ try:
                     P_sum += term
         P = np.clip(P_sum, -finite_infinity_bound, finite_infinity_bound)
 
-        # E subfunction evaluation (Exact User Implementation)
         E_sum = np.ones_like(X_rot)
         for idx_i, (val_i, off_i, _, _) in enumerate(dims):
             for idx_j, (val_j, off_j, _, _) in enumerate(dims):
@@ -319,14 +318,12 @@ try:
                     E_sum += hz * full_seed * np.exp(-(((val_i - off_i)**2 + (val_j - off_j)**2) / (2 * (grid_span**2))))
         E = E_sum
 
-        # Operator Theory True Infinity Matrix (Exact User Implementation)
         true_infinity_matrix = np.zeros_like(X_rot)
         for idx_i, (val_i, off_i, h_i, _) in enumerate(dims):
             for idx_j, (val_j, off_j, h_j, _) in enumerate(dims):
                 if idx_i != idx_j:
                     true_infinity_matrix += np.tan(np.arctan(val_i * h_i) + np.arctan(val_j * h_j))
 
-        # D subfunction evaluation (Exact User Implementation)
         linear_phase_sum = (X_rot * hz + Y_rot * hx + Z_slice * hy) - c * t * full_seed + beta
         D = np.imag(np.exp(1j * (linear_phase_sum + true_infinity_matrix)))
 
@@ -414,7 +411,6 @@ try:
         ]
         finite_infinity_bound = 1e6
 
-        # P subfunction evaluation (Exact User Implementation)
         P_sum = np.zeros_like(X_rot)
         for idx_i, (val_i, off_i, h_i, _) in enumerate(dims):
             for idx_j, (val_j, off_j, h_j, _) in enumerate(dims):
@@ -423,7 +419,6 @@ try:
                     P_sum += term
         P = np.clip(P_sum, -finite_infinity_bound, finite_infinity_bound)
 
-        # E subfunction evaluation (Exact User Implementation)
         E_sum = np.ones_like(X_rot)
         for idx_i, (val_i, off_i, _, _) in enumerate(dims):
             for idx_j, (val_j, off_j, _, _) in enumerate(dims):
@@ -431,14 +426,12 @@ try:
                     E_sum += hz * full_seed * np.exp(-(((val_i - off_i)**2 + (val_j - off_j)**2) / (2 * (grid_span**2))))
         E = E_sum
 
-        # Operator Theory True Infinity Matrix (Exact User Implementation)
         true_infinity_matrix = np.zeros_like(X_rot)
         for idx_i, (val_i, off_i, h_i, _) in enumerate(dims):
             for idx_j, (val_j, off_j, h_j, _) in enumerate(dims):
                 if idx_i != idx_j:
                     true_infinity_matrix += np.tan(np.arctan(val_i * h_i) + np.arctan(val_j * h_j))
 
-        # D subfunction evaluation (Exact User Implementation)
         linear_phase_sum = (X_rot * hz + Y_rot * hx + Z_slice * hy) - c * t * full_seed + beta
         D = np.imag(np.exp(1j * (linear_phase_sum + true_infinity_matrix)))
 
@@ -482,7 +475,9 @@ try:
         fig.canvas.draw()
         
         rgba_buffer = fig.canvas.buffer_rgba()
-        p_ffmpeg.stdin.write(rgba_buffer)
+        # Enforce exact bytes casting and pipe flushing to completely prevent frame 1 drop/choke
+        p_ffmpeg.stdin.write(bytes(rgba_buffer))
+        p_ffmpeg.stdin.flush()
 
         if i % log_interval == 0 or i == total_frames - 1:
             print(f"[Python] Piped simultaneous tensor frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
@@ -502,7 +497,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing Crash-Resilient Python Pipeline with Direct Media Writer Pipe..."
+echo -e "[*] Initializing `eqr.sh` with Locked Stride & Direct Stream Pipeline..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py

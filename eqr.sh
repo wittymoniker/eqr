@@ -70,6 +70,7 @@ echo "  - ir_thermal      : Switches colormap to deep thermal-infrared band (inf
 echo "  - uv_spectrum     : Shifts colormap into ultraviolet fluorescence profile (cool)."
 echo "  - eye_filter      : Dynamic biological eye-adjustment photon luminance scaling."
 echo "  - negative_mass   : Operator-theory logarithmic field inversion (-log(|Z|)*sign(Z))."
+echo "  - clip_03         : Dynamically clips and maps Z-surface alpha range directly across 0 to 3."
 echo ""
 read -p "Enter prompt configuration [soliton_core,soliton_shift]: " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core,soliton_shift}
@@ -131,15 +132,15 @@ echo "  1) harmonic_drone  (Resonant multi-harmonic carrier chord synthesized fr
 echo "  2) standing_wave   (Phase-coupled frequency sweeps mimicking acoustic cavity resonance)"
 echo "  3) photon_chime    (High-frequency transient scintillation pulses mapped from optical flux)"
 echo "  4) synesthesia_fx  (Cross-modal audio: direct optical spectrum wavelength-to-frequency translation)"
-read -p "Select audio sonification profile [1-4, default 4]: " AUDIO_CHOICE
-AUDIO_CHOICE=${AUDIO_CHOICE:-4}
+read -p "Select audio sonification profile [1-4, default 3]: " AUDIO_CHOICE
+AUDIO_CHOICE=${AUDIO_CHOICE:-3}
 
 case "$AUDIO_CHOICE" in
     1) AUDIO_PROFILE="harmonic_drone" ;;
     2) AUDIO_PROFILE="standing_wave" ;;
     3) AUDIO_PROFILE="photon_chime" ;;
     4) AUDIO_PROFILE="synesthesia_fx" ;;
-    *) AUDIO_PROFILE="synesthesia_fx" ;;
+    *) AUDIO_PROFILE="photon_chime" ;;
 esac
 
 read -p "Enter initial camera distance / zoom radius [2.0]: " CAM_DIST
@@ -180,7 +181,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (With Dynamic Codec Fallback)
+# 5. WRITE EXTERNAL PYTHON ENGINE (With 0-3 Translucency/Alpha Mapping Support)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -209,8 +210,8 @@ try:
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
     spatial_label = os.environ.get("SPATIAL_LABEL", "cm")
-    heuristic = os.environ.get("TARGET_HEURISTIC", "photovision")
-    audio_profile = os.environ.get("AUDIO_PROFILE", "harmonic_drone")
+    heuristic = os.environ.get("TARGET_HEURISTIC", "hybrid_core")
+    audio_profile = os.environ.get("AUDIO_PROFILE", "photon_chime")
     
     c = c_base * field_mult
 
@@ -395,13 +396,14 @@ try:
 
         prompt_modifier = 0.0
         use_negative_mass = False
+        use_clip_03 = False
         beta = 0.0
-        active_cmap = 'turbo'
+        active_cmap = 'viridis'
 
         if heuristic == "mattervision":
             active_cmap = 'plasma'
-        elif heuristic == "hybrid_core":
-            active_cmap = 'viridis'
+        elif heuristic == "photovision":
+            active_cmap = 'turbo'
         elif heuristic == "synesthesia":
             active_cmap = 'coolwarm'
 
@@ -412,6 +414,8 @@ try:
                 beta += np.sin(progress * np.pi)
             elif "negative_mass" in p or "neg_mass" in p:
                 use_negative_mass = True
+            elif "clip_03" in p or "clip03" in p:
+                use_clip_03 = True
             elif "ir" in p or "thermal" in p:
                 active_cmap = 'inferno'
             elif "uv" in p or "ultraviolet" in p:
@@ -476,11 +480,20 @@ try:
         Z_adjusted = np.clip(Z_norm * lum_adj, 0.0, 1.0)
         Z_adjusted = np.nan_to_num(Z_adjusted, nan=0.0)
 
+        # Apply prompted 0-3 alpha translucency mapping if requested
+        if use_clip_03:
+            alpha_map = np.clip(Z_adjusted * 3.0, 0.0, 1.0)
+            cmap_obj = plt.get_cmap(active_cmap)
+            rgba_face = cmap_obj(Z_adjusted)
+            rgba_face[..., 3] = alpha_map
+        else:
+            rgba_face = active_cmap
+
         ax.clear()
         ax.set_facecolor('#090d16')
-        ax.plot_surface(X_rot, Y_rot, Z_adjusted, cmap=active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
+        ax.plot_surface(X_rot, Y_rot, Z_adjusted, facecolors=rgba_face if use_clip_03 else None, cmap=None if use_clip_03 else active_cmap, linewidth=0.1, antialiased=True, alpha=0.9)
 
-        title_prefix = f"SYNESTHESIA [Light->Sound]" if heuristic == "synesthesia" else f"Heuristic [{heuristic.upper}]"
+        title_prefix = f"HYBRID CORE [Tensor Fusion]" if heuristic == "hybrid_core" else f"Heuristic [{heuristic.upper}]"
         ax.set_title(f"{title_prefix} | Scale: {spatial_label} | t={t*1e6:.3f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white', labelpad=6)
         ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white', labelpad=6)
@@ -518,7 +531,6 @@ try:
 
     plt.close(fig)
     
-    # Let communicate() manage the stdin closure and process termination cleanly
     stdout, stderr = p_ffmpeg.communicate()
     if p_ffmpeg.returncode != 0:
         print(f"[FFmpeg Warning/Error Log]:\n{stderr.decode('utf-8', errors='ignore')}")
@@ -534,7 +546,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing `eqr.sh` Pipeline with Dynamic Encoder Fallback..."
+echo -e "[*] Initializing `eqr.sh` Pipeline with Hybrid Core Default & 0-3 Alpha Prompt Option..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py

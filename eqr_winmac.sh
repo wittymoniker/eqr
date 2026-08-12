@@ -182,7 +182,7 @@ echo -e "    - Audio Profile    : ${BLUE}$AUDIO_PROFILE${NC}"
 echo -e "    - Local Output     : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 5. WRITE EXTERNAL PYTHON ENGINE (With 0-3 Translucency/Alpha Mapping Support)
+# 5. WRITE EXTERNAL PYTHON ENGINE (With Dynamic Codec Fallback & 0-3 Alpha Support)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_engine.py
 import numpy as np
@@ -257,13 +257,30 @@ try:
     w = w if w % 2 == 0 else w + 1
     h = h if h % 2 == 0 else h + 1
 
+    def get_available_encoder():
+        try:
+            res = subprocess.run(['ffmpeg', '-encoders'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            encoders = res.stdout
+            if 'libx264' in encoders:
+                return 'libx264'
+            elif 'libsvtav1' in encoders:
+                return 'libsvtav1'
+            elif 'mpeg4' in encoders:
+                return 'mpeg4'
+        except Exception:
+            pass
+        return 'mpeg4'
+
+    chosen_encoder = get_available_encoder()
+    print(f"[Python] Selected FFmpeg video encoder: {chosen_encoder}")
+
     ffmpeg_cmd = [
         'ffmpeg', '-hide_banner', '-loglevel', 'info', '-y',
         '-f', 'rawvideo', '-vcodec', 'rawvideo',
         '-s', f'{w}x{h}',
         '-pix_fmt', 'rgba', '-r', str(fps), '-i', '-',
         '-i', audio_file_path,
-        '-c:v', 'libx264', '-crf', '23', '-pix_fmt', 'yuv420p',
+        '-c:v', chosen_encoder, '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '128k',
         output_file
     ]
@@ -529,7 +546,7 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-echo -e "[*] Initializing `eqr_mac_wsl.sh` Pipeline with Hybrid Core Default & 0-3 Alpha Prompt Option..."
+echo -e "[*] Initializing macOS / WSL Pipeline with Dynamic Encoder Fallback & 0-3 Alpha Option..."
 python3 /tmp/tensor_engine.py
 
 rm -f /tmp/tensor_engine.py

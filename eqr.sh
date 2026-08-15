@@ -59,13 +59,14 @@ export VIDEO_STRETCH_SEC
 export TIME_OFFSET
 
 # 2. METRIC SPATIAL DOMAIN SCALE & XYZ OFFSET CONFIGURATION
+# 2. METRIC SPATIAL DOMAIN SCALE & XYZ OFFSET CONFIGURATION
 echo -e "\n${YELLOW}[2/7] Centimeter-Based Spatial Dimension Scale & Volumetric Offsets:${NC}"
 echo "Select Base Spatial Dimension Scale Unit (Metric relative to cm):"
 echo "  [1] Gigameter   (Gm  = 10^11 cm)"
 echo "  [2] Megameter   (Mm  = 10^8 cm)"
 echo "  [3] Kilometer   (km  = 10^5 cm)"
 echo "  [4] Centimeter  (cm  = 10^0 cm) [DEFAULT]"
-echo "  [5] Micrometer  (µm  = 10^-4 cm)"
+echo "  [5] Micrometer  (碌m  = 10^-4 cm)"
 echo "  [6] Nanometer   (nm  = 10^-7 cm)"
 echo "  [7] Picometer   (pm  = 10^-10 cm)"
 read -p "Select spatial domain scale option [1-7, default 4]: " SPATIAL_CHOICE
@@ -76,11 +77,15 @@ case "$SPATIAL_CHOICE" in
     2) SPATIAL_BASE_VAL="1e8"; SPATIAL_LABEL="Mm" ;;
     3) SPATIAL_BASE_VAL="1e5"; SPATIAL_LABEL="km" ;;
     4) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
-    5) SPATIAL_BASE_VAL="1e-4"; SPATIAL_LABEL="µm" ;;
+    5) SPATIAL_BASE_VAL="1e-4"; SPATIAL_LABEL="碌m" ;;
     6) SPATIAL_BASE_VAL="1e-7"; SPATIAL_LABEL="nm" ;;
     7) SPATIAL_BASE_VAL="1e-10"; SPATIAL_LABEL="pm" ;;
     *) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
 esac
+
+# Added prompt for the exact field number of meters for graph scaling/index
+read -p "Enter exact field scale factor in meters [numeric, default 1.0]: " EXACT_METERS_SCALE
+EXACT_METERS_SCALE=${EXACT_METERS_SCALE:-1.0}
 
 read -p "Enter spatial X volumetric offset shift [numeric, default 0.0]: " OFFSET_X
 OFFSET_X=${OFFSET_X:-0.0}
@@ -91,6 +96,7 @@ OFFSET_Z=${OFFSET_Z:-0.0}
 
 export SPATIAL_BASE_VAL
 export SPATIAL_LABEL
+export EXACT_METERS_SCALE
 export OFFSET_X
 export OFFSET_Y
 export OFFSET_Z
@@ -243,6 +249,13 @@ try:
     offset_x = float(os.environ.get("OFFSET_X", "0.0"))
     offset_y = float(os.environ.get("OFFSET_Y", "0.0"))
     offset_z = float(os.environ.get("OFFSET_Z", "0.0"))
+
+    spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
+    exact_meters = float(os.environ.get("EXACT_METERS_SCALE", "1.0"))
+    field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
+    
+    # Incorporate exact field meters into the overall grid span calculation
+    grid_span = ((c * 1e-8) * spatial_base) * exact_meters
 
     full_seed = float(os.environ.get("FULL_SEED", "1.25"))
     cam_dist = float(os.environ.get("CAM_DIST", "2.0"))

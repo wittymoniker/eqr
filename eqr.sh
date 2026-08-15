@@ -219,7 +219,7 @@ import traceback
 import wave
 import subprocess
 import signal
-
+dtype=np.float32
 def signal_handler(sig, frame):
     print("\n[Python] Interrupted cleanly by user. Saving state...")
     sys.exit(0)

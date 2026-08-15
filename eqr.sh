@@ -3,7 +3,7 @@
 # ADVANCED TENSOR REALITY ENGINE - MASTER VOLUMETRIC EDITION (FEDORA)
 # Framework: Equation of Reality, P,E,D Subfunctions, Operator Theory, Meum (20d)
 # Features: True 3D Volumetric Rendering Schemes (Voxels, Isosurfaces, Scatter),
-#           Metric Scales, Audio Profiles, Camera/Zoom Constraints, XYZ & Time Offsets
+#           Metric Scales, Exact Field Meters Scaling Index, Audio Profiles, XYZ & Time Offsets
 # ==============================================================================
 
 set -uo pipefail
@@ -25,7 +25,7 @@ echo "  [1] Gigasecond  (1 Gs  = 10^9 s)"
 echo "  [2] Megasecond  (1 Ms  = 10^6 s)"
 echo "  [3] Second      (1 s   = 1.0 s)"
 echo "  [4] Millisecond (1 ms  = 10^-3 s)"
-echo "  [5] Microsecond (1 µs  = 10^-6 s) [DEFAULT]"
+echo "  [5] Microsecond (1 碌s  = 10^-6 s) [DEFAULT]"
 echo "  [6] Nanosecond  (1 ns  = 10^-9 s)"
 echo "  [7] Picosecond  (1 ps  = 10^-12 s)"
 read -p "Select timescale unit option [1-7, default 5]: " TIME_CHOICE
@@ -36,10 +36,10 @@ case "$TIME_CHOICE" in
     2) SCALE_VAL="1e6"; SCALE_LABEL="Ms" ;;
     3) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
     4) SCALE_VAL="1e-3"; SCALE_LABEL="ms" ;;
-    5) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
+    5) SCALE_VAL="1e-6"; SCALE_LABEL="碌s" ;;
     6) SCALE_VAL="1e-9"; SCALE_LABEL="ns" ;;
     7) SCALE_VAL="1e-12"; SCALE_LABEL="ps" ;;
-    *) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
+    *) SCALE_VAL="1e-6"; SCALE_LABEL="碌s" ;;
 esac
 
 read -p "Enter number of units to span [numeric, default 2.5]: " USER_UNITS
@@ -58,8 +58,7 @@ export CALC_DURATION_SEC
 export VIDEO_STRETCH_SEC
 export TIME_OFFSET
 
-# 2. METRIC SPATIAL DOMAIN SCALE & XYZ OFFSET CONFIGURATION
-# 2. METRIC SPATIAL DOMAIN SCALE & XYZ OFFSET CONFIGURATION
+# 2. METRIC SPATIAL DOMAIN SCALE, EXACT METERS INDEX & XYZ OFFSET CONFIGURATION
 echo -e "\n${YELLOW}[2/7] Centimeter-Based Spatial Dimension Scale & Volumetric Offsets:${NC}"
 echo "Select Base Spatial Dimension Scale Unit (Metric relative to cm):"
 echo "  [1] Gigameter   (Gm  = 10^11 cm)"
@@ -83,8 +82,8 @@ case "$SPATIAL_CHOICE" in
     *) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
 esac
 
-# Added prompt for the exact field number of meters for graph scaling/index
-read -p "Enter exact field scale factor in meters [numeric, default 1.0]: " EXACT_METERS_SCALE
+# Explicit prompt requested for exact field number of meters for graph scaling and index
+read -p "Enter exact field number of meters for graph scaling and index [numeric, default 1.0]: " EXACT_METERS_SCALE
 EXACT_METERS_SCALE=${EXACT_METERS_SCALE:-1.0}
 
 read -p "Enter spatial X volumetric offset shift [numeric, default 0.0]: " OFFSET_X
@@ -199,14 +198,15 @@ export OUTPUT_FILE="$SCRIPT_DIR/tensor_volumetric_render_$TIMESTAMP.mkv"
 export AUDIO_FILE="$SCRIPT_DIR/tensor_volumetric_audio_$TIMESTAMP.wav"
 
 echo -e "\n${CYAN}[+] Volumetric Master Parameters Locked:${NC}"
-echo -e "    - Metric Scale     : ${SPATIAL_LABEL}"
-echo -e "    - Volumetric Scheme: ${VOL_SCHEME} (Res: ${VOL_RES}, Threshold: ${VOL_THRESHOLD})"
-echo -e "    - Time Offset      : ${TIME_OFFSET} units"
-echo -e "    - XYZ Offsets      : X=${OFFSET_X}, Y=${OFFSET_Y}, Z=${OFFSET_Z}"
-echo -e "    - Output Target    : $OUTPUT_FILE\n"
+echo -e "    - Metric Scale       : ${SPATIAL_LABEL}"
+echo -e "    - Exact Field Meters : ${EXACT_METERS_SCALE} m"
+echo -e "    - Volumetric Scheme  : ${VOL_SCHEME} (Res: ${VOL_RES}, Threshold: ${VOL_THRESHOLD})"
+echo -e "    - Time Offset        : ${TIME_OFFSET} units"
+echo -e "    - XYZ Offsets        : X=${OFFSET_X}, Y=${OFFSET_Y}, Z=${OFFSET_Z}"
+echo -e "    - Output Target      : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 6. PYTHON VOLUMETRIC 3D ENGINE WRITER
+# 6. PYTHON VOLUMETRIC 3D ENGINE WRITER (FEDORA / LINUX)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_volumetric_engine.py
 import numpy as np
@@ -230,11 +230,12 @@ try:
     print("[Python] Initializing True 3D Volumetric Tensor Reality Engine...")
     c_base = 134964356.0
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
+    exact_meters = float(os.environ.get("EXACT_METERS_SCALE", "1.0"))
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
     spatial_label = os.environ.get("SPATIAL_LABEL", "cm")
     heuristic = os.environ.get("TARGET_HEURISTIC", "hybrid_core")
     audio_profile = os.environ.get("AUDIO_PROFILE", "photon_chime")
-    
+
     vol_scheme = os.environ.get("VOL_SCHEME", "isosurface")
     vol_res = int(os.environ.get("VOL_RES", "25"))
     vol_threshold = float(os.environ.get("VOL_THRESHOLD", "0.3"))
@@ -245,17 +246,10 @@ try:
     duration_sec = float(os.environ.get("CALC_DURATION_SEC", "1.0"))
     playback_sec = float(os.environ.get("VIDEO_STRETCH_SEC", "30.0"))
     time_offset = float(os.environ.get("TIME_OFFSET", "0.0"))
-    
+
     offset_x = float(os.environ.get("OFFSET_X", "0.0"))
     offset_y = float(os.environ.get("OFFSET_Y", "0.0"))
     offset_z = float(os.environ.get("OFFSET_Z", "0.0"))
-
-    spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
-    exact_meters = float(os.environ.get("EXACT_METERS_SCALE", "1.0"))
-    field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
-    
-    # Incorporate exact field meters into the overall grid span calculation
-    grid_span = ((c * 1e-8) * spatial_base) * exact_meters
 
     full_seed = float(os.environ.get("FULL_SEED", "1.25"))
     cam_dist = float(os.environ.get("CAM_DIST", "2.0"))
@@ -264,7 +258,7 @@ try:
 
     prompt_input = os.environ.get("PROMPT_INPUT", "soliton_core")
     prompts = [p.strip().lower() for p in prompt_input.split(',')]
-    
+
     raw_hvec = os.environ.get("HARMONIC_VEC", "1.0,1.0,1.0").split(',')
     h_vec = [float(v.strip()) for v in raw_hvec if v.strip()]
     hx = h_vec[0] if len(h_vec) > 0 else 1.0
@@ -276,9 +270,9 @@ try:
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor('#090d16')
 
-    grid_span = (c * 1e-8) * spatial_base
-    
-    # Full 3D Volumetric Meshgrid (X, Y, Z space coordinates)
+    # Grid span scaled correctly using the exact meters parameter index
+    grid_span = ((c * 1e-8) * spatial_base) * exact_meters
+
     x = np.linspace(-grid_span, grid_span, vol_res) + offset_x
     y = np.linspace(-grid_span, grid_span, vol_res) + offset_y
     z = np.linspace(-grid_span, grid_span, vol_res) + offset_z
@@ -375,8 +369,7 @@ try:
         rot_angle = t * c * 1e-7 * hx
         X_rot = X * np.cos(rot_angle) - Y * np.sin(rot_angle)
         Y_rot = X * np.sin(rot_angle) + Y * np.cos(rot_angle)
-        
-        # True 3D Volumetric Tensor Evaluation across X, Y, Z_grid
+
         P_vol = np.sin((X_rot * c) / (hx * (full_seed + prompt_modifier))) * np.cos((Y_rot * c) / (hy * full_seed) - beta)
         E_vol = 1.0 + hz * full_seed * np.exp(-((X_rot**2 + Y_rot**2 + Z_grid**2) / (2 * (grid_span**2))))
         V_field = P_vol * E_vol + np.sin(Z_grid * hx * 0.1 - c * t * 1e-7)
@@ -391,19 +384,14 @@ try:
         ax.clear()
         ax.set_facecolor('#090d16')
 
-        # True 3D Volumetric Rendering Schemes Implementation
         if vol_scheme == "voxel_grid":
-            # Scheme 1: Discretized 3D cubic voxel blocks
             voxels = np.abs(V_norm) > (1.0 - vol_threshold)
             colors = plt.get_cmap(active_cmap)(V_norm)
             ax.voxels(voxels, facecolors=colors, edgecolor='k', linewidth=0.05, alpha=0.7)
         elif vol_scheme == "scatter_3d":
-            # Scheme 2: High-density 3D energy point-cloud scatter distribution
             mask = np.abs(V_norm) > vol_threshold
             ax.scatter(X_rot[mask], Y_rot[mask], Z_grid[mask], c=V_norm[mask], cmap=active_cmap, s=5, alpha=0.6, edgecolors='none')
         else:
-            # Scheme 3 (Default): Multi-layered Isosurface Volumetric Nesting
-            # Slices through Z-depth to form true nested 3D volumetric shells instead of a flat plane
             cmap_obj = plt.get_cmap(active_cmap)
             for z_idx in range(0, Z_grid.shape[2], max(1, Z_grid.shape[2] // 6)):
                 xi = X_rot[:, :, z_idx]
@@ -412,11 +400,11 @@ try:
                 fi = V_norm[:, :, z_idx]
                 ax.plot_surface(xi, yi, zi, facecolors=cmap_obj(fi), linewidth=0.0, antialiased=True, alpha=0.5)
 
-        ax.set_title(f"3D VOLUMETRIC [{vol_scheme.upper}] | Scale: {spatial_label} | T={t*1e6:.2f}µs", color='#00ffcc', fontsize=9, fontweight='bold')
+        ax.set_title(f"3D VOLUMETRIC [{vol_scheme.upper}] | Scale: {spatial_label} ({exact_meters}m) | T={t*1e6:.2f}碌s", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white')
         ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white')
         ax.set_zlabel(f"Spatial Z ({spatial_label})", color='white')
-        
+
         ax.dist = cam_dist * 10.0
         ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
 

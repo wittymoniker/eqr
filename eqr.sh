@@ -19,31 +19,31 @@ echo -e "${CYAN}================================================================
 echo -e "${GREEN}    TENSOR REALITY ENGINE - FEDORA VOLUMETRIC MASTER EDITION             ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
 
-# 1. TIMESCALE & TIME OFFSET CONFIGURATION
+# 1. TIMESCALE & TIME OFFSET CONFIGURATION (Time T = I = 1 second enforced)
 echo -e "\n${YELLOW}[1/7] Select Base Time Scale Unit:${NC}"
 echo "  [1] Gigasecond  (1 Gs  = 10^9 s)"
 echo "  [2] Megasecond  (1 Ms  = 10^6 s)"
-echo "  [3] Second      (1 s   = 1.0 s)"
+echo "  [3] Second      (1 s   = 1.0 s) [DEFAULT/FIXED BASE T=I=1]"
 echo "  [4] Millisecond (1 ms  = 10^-3 s)"
-echo "  [5] Microsecond (1 碌s  = 10^-6 s) [DEFAULT]"
+echo "  [5] Microsecond (1 µs  = 10^-6 s)"
 echo "  [6] Nanosecond  (1 ns  = 10^-9 s)"
 echo "  [7] Picosecond  (1 ps  = 10^-12 s)"
-read -p "Select timescale unit option [1-7, default 5]: " TIME_CHOICE
-TIME_CHOICE=${TIME_CHOICE:-5}
+read -p "Select timescale unit option [1-7, default 3]: " TIME_CHOICE
+TIME_CHOICE=${TIME_CHOICE:-3}
 
 case "$TIME_CHOICE" in
     1) SCALE_VAL="1e9"; SCALE_LABEL="Gs" ;;
     2) SCALE_VAL="1e6"; SCALE_LABEL="Ms" ;;
     3) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
     4) SCALE_VAL="1e-3"; SCALE_LABEL="ms" ;;
-    5) SCALE_VAL="1e-6"; SCALE_LABEL="碌s" ;;
+    5) SCALE_VAL="1e-6"; SCALE_LABEL="µs" ;;
     6) SCALE_VAL="1e-9"; SCALE_LABEL="ns" ;;
     7) SCALE_VAL="1e-12"; SCALE_LABEL="ps" ;;
-    *) SCALE_VAL="1e-6"; SCALE_LABEL="碌s" ;;
+    *) SCALE_VAL="1.0"; SCALE_LABEL="s" ;;
 esac
 
-read -p "Enter number of units to span [numeric, default 2.5]: " USER_UNITS
-USER_UNITS=${USER_UNITS:-2.5}
+read -p "Enter number of units to span [numeric, default 420]: " USER_UNITS
+USER_UNITS=${USER_UNITS:-420}
 
 read -p "Enter working time offset shift value [numeric offset, default 0.0]: " TIME_OFFSET
 TIME_OFFSET=${TIME_OFFSET:-0.0}
@@ -65,7 +65,7 @@ echo "  [1] Gigameter   (Gm  = 10^11 cm)"
 echo "  [2] Megameter   (Mm  = 10^8 cm)"
 echo "  [3] Kilometer   (km  = 10^5 cm)"
 echo "  [4] Centimeter  (cm  = 10^0 cm) [DEFAULT]"
-echo "  [5] Micrometer  (碌m  = 10^-4 cm)"
+echo "  [5] Micrometer  (µm  = 10^-4 cm)"
 echo "  [6] Nanometer   (nm  = 10^-7 cm)"
 echo "  [7] Picometer   (pm  = 10^-10 cm)"
 read -p "Select spatial domain scale option [1-7, default 4]: " SPATIAL_CHOICE
@@ -76,13 +76,12 @@ case "$SPATIAL_CHOICE" in
     2) SPATIAL_BASE_VAL="1e8"; SPATIAL_LABEL="Mm" ;;
     3) SPATIAL_BASE_VAL="1e5"; SPATIAL_LABEL="km" ;;
     4) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
-    5) SPATIAL_BASE_VAL="1e-4"; SPATIAL_LABEL="碌m" ;;
+    5) SPATIAL_BASE_VAL="1e-4"; SPATIAL_LABEL="µm" ;;
     6) SPATIAL_BASE_VAL="1e-7"; SPATIAL_LABEL="nm" ;;
     7) SPATIAL_BASE_VAL="1e-10"; SPATIAL_LABEL="pm" ;;
     *) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
 esac
 
-# Explicit prompt requested for exact field number of meters for graph scaling and index
 read -p "Enter exact field number of meters for graph scaling and index [numeric, default 1.0]: " EXACT_METERS_SCALE
 EXACT_METERS_SCALE=${EXACT_METERS_SCALE:-1.0}
 
@@ -162,7 +161,7 @@ esac
 export TARGET_HEURISTIC
 export AUDIO_PROFILE
 
-# 5. PROCEDURAL EFFECTS, CAMERA CONSTRAINTS & PROMPT CONFIGURATION
+# 5. PROCEDURAL EFFECTS, CAMERA CONSTRAINTS & PROMPT CONFIGURATION (Restored Full 7/7 Panels)
 echo -e "\n${YELLOW}[5/7] Procedural Effects & Camera Constraints Configuration:${NC}"
 read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03]: " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core,soliton_shift,clip_03}
@@ -183,6 +182,26 @@ CAM_PITCH=${CAM_PITCH:-35}
 read -p "Enter initial Yaw angle in degrees [numeric, default 55]: " CAM_YAW
 CAM_YAW=${CAM_YAW:-55}
 
+# 6/7 Visual Heuristics Panel Controls
+echo -e "\n${YELLOW}[6/7] Advanced Visual Heuristics & Filtering Profiles:${NC}"
+read -p "Enter custom colormap override [default: inferno, options: viridis, plasma, inferno, turbo]: " VISUAL_CMAP
+VISUAL_CMAP=${VISUAL_CMAP:-inferno}
+read -p "Enter spatial distortion amplitude multiplier [numeric, default 1.0]: " DISTORTION_AMP
+DISTORTION_AMP=${DISTORTION_AMP:-1.0}
+
+export VISUAL_CMAP
+export DISTORTION_AMP
+
+# 7/7 Parametry & Pipeline Matrix Constraints
+echo -e "\n${YELLOW}[7/7] Parametry & Pipeline Matrix Constraints:${NC}"
+read -p "Enter master pipeline safety clamp limit [float, default 10.0]: " SAFETY_CLAMP
+SAFETY_CLAMP=${SAFETY_CLAMP:-10.0}
+read -p "Enable high-precision tensor fallback mode [y/N, default n]: " HIGH_PRECISION
+HIGH_PRECISION=${HIGH_PRECISION:-n}
+
+export SAFETY_CLAMP
+export HIGH_PRECISION
+
 export FIELD_SCALE_MULT
 export FPS
 export FULL_SEED
@@ -197,16 +216,20 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 export OUTPUT_FILE="$SCRIPT_DIR/tensor_volumetric_render_$TIMESTAMP.mkv"
 export AUDIO_FILE="$SCRIPT_DIR/tensor_volumetric_audio_$TIMESTAMP.wav"
 
-echo -e "\n${CYAN}[+] Volumetric Master Parameters Locked:${NC}"
+echo -e "\n${CYAN}==============================================================================${NC}"
+echo -e "${GREEN}    TENSOR REALITY ENGINE - FEDORA VOLUMETRIC MASTER EDITION LOCKED     ${NC}"
+echo -e "${CYAN}==============================================================================${NC}"
 echo -e "    - Metric Scale       : ${SPATIAL_LABEL}"
 echo -e "    - Exact Field Meters : ${EXACT_METERS_SCALE} m"
+echo -e "    - Time Factor T=I    : 1.0 Second Base Enforced"
 echo -e "    - Volumetric Scheme  : ${VOL_SCHEME} (Res: ${VOL_RES}, Threshold: ${VOL_THRESHOLD})"
 echo -e "    - Time Offset        : ${TIME_OFFSET} units"
 echo -e "    - XYZ Offsets        : X=${OFFSET_X}, Y=${OFFSET_Y}, Z=${OFFSET_Z}"
+echo -e "    - Heuristics / Cmap  : ${TARGET_HEURISTIC} / ${VISUAL_CMAP}"
 echo -e "    - Output Target      : $OUTPUT_FILE\n"
 
 # ==============================================================================
-# 6. PYTHON VOLUMETRIC 3D ENGINE WRITER (FEDORA / LINUX)
+# PYTHON VOLUMETRIC 3D ENGINE WRITER (FEDORA / LINUX)
 # ==============================================================================
 cat << 'EOF' > /tmp/tensor_volumetric_engine.py
 import numpy as np
@@ -219,7 +242,13 @@ import traceback
 import wave
 import subprocess
 import signal
-dtype=np.float32
+
+# Enforce 32-bit float matrix optimization safely
+if os.environ.get("HIGH_PRECISION", "n").lower() == 'y':
+    dtype = np.float64
+else:
+    dtype = np.float32
+
 def signal_handler(sig, frame):
     print("\n[Python] Interrupted cleanly by user. Saving state...")
     sys.exit(0)
@@ -227,14 +256,17 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 try:
-    print("[Python] Initializing True 3D Volumetric Tensor Reality Engine...")
-    c_base = 134964356.0
+    print("[Python] Initializing True 3D Volumetric Tensor Reality Engine (T=I=1s Enforced)...")
+    c_base = 1.0  # Normalized exact base with T=I=1s factor
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
     exact_meters = float(os.environ.get("EXACT_METERS_SCALE", "1.0"))
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
     spatial_label = os.environ.get("SPATIAL_LABEL", "cm")
     heuristic = os.environ.get("TARGET_HEURISTIC", "hybrid_core")
     audio_profile = os.environ.get("AUDIO_PROFILE", "photon_chime")
+    active_cmap = os.environ.get("VISUAL_CMAP", "inferno")
+    distortion_amp = float(os.environ.get("DISTORTION_AMP", "1.0"))
+    safety_clamp = float(os.environ.get("SAFETY_CLAMP", "10.0"))
 
     vol_scheme = os.environ.get("VOL_SCHEME", "isosurface")
     vol_res = int(os.environ.get("VOL_RES", "25"))
@@ -270,12 +302,11 @@ try:
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor('#090d16')
 
-    # Grid span scaled correctly using the exact meters parameter index
-    grid_span = ((c * 1e-8) * spatial_base) * exact_meters
+    grid_span = ((c * 1.0) * spatial_base) * exact_meters
 
-    x = np.linspace(-grid_span, grid_span, vol_res) + offset_x
-    y = np.linspace(-grid_span, grid_span, vol_res) + offset_y
-    z = np.linspace(-grid_span, grid_span, vol_res) + offset_z
+    x = np.linspace(-grid_span, grid_span, vol_res, dtype=dtype) + offset_x
+    y = np.linspace(-grid_span, grid_span, vol_res, dtype=dtype) + offset_y
+    z = np.linspace(-grid_span, grid_span, vol_res, dtype=dtype) + offset_z
     X, Y, Z_grid = np.meshgrid(x, y, z, indexing='ij')
 
     output_file = os.environ.get("OUTPUT_FILE", "tensor_volumetric_render.mkv")
@@ -316,11 +347,11 @@ try:
     for i in range(total_frames):
         progress = i / max(1, (total_frames - 1))
         t = (progress * duration_sec) + time_offset
-        rot_angle = t * c * 1e-7 * hx
+        rot_angle = t * c * hx
         X_rot = X * np.cos(rot_angle) - Y * np.sin(rot_angle)
         tensor_audio_samples.append(np.mean(np.sin((X_rot * c) / (hx * full_seed))))
 
-    t_audio = np.linspace(0, playback_sec, total_audio_frames)
+    t_audio = np.linspace(0, playback_sec, total_audio_frames, dtype=dtype)
     interp_wave = np.interp(np.linspace(0, len(tensor_audio_samples) - 1, total_audio_frames), np.arange(len(tensor_audio_samples)), tensor_audio_samples)
 
     if audio_profile == "harmonic_drone":
@@ -353,7 +384,6 @@ try:
         prompt_modifier = 0.0
         use_negative_mass = False
         beta = 0.0
-        active_cmap = 'viridis'
 
         if heuristic == "mattervision": active_cmap = 'plasma'
         elif heuristic == "photovision": active_cmap = 'turbo'
@@ -366,17 +396,18 @@ try:
             elif "ir" in p or "thermal" in p: active_cmap = 'inferno'
             elif "uv" in p: active_cmap = 'cool'
 
-        rot_angle = t * c * 1e-7 * hx
+        rot_angle = t * c * hx
         X_rot = X * np.cos(rot_angle) - Y * np.sin(rot_angle)
         Y_rot = X * np.sin(rot_angle) + Y * np.cos(rot_angle)
 
         P_vol = np.sin((X_rot * c) / (hx * (full_seed + prompt_modifier))) * np.cos((Y_rot * c) / (hy * full_seed) - beta)
         E_vol = 1.0 + hz * full_seed * np.exp(-((X_rot**2 + Y_rot**2 + Z_grid**2) / (2 * (grid_span**2))))
-        V_field = P_vol * E_vol + np.sin(Z_grid * hx * 0.1 - c * t * 1e-7)
+        V_field = (P_vol * E_vol + np.sin(Z_grid * hx * 0.1 - c * t)) * distortion_app
 
         if use_negative_mass:
             V_field = -np.log(np.abs(V_field) + 1e-5) * np.sign(V_field)
 
+        V_field = np.clip(V_field, -safety_clamp, safety_clamp)
         V_field = np.nan_to_num(V_field, nan=0.0, posinf=1.0, neginf=-1.0)
         v_min, v_max = V_field.min(), V_field.max()
         V_norm = np.zeros_like(V_field) if np.isclose(v_min, v_max) else (V_field - v_min) / (v_max - v_min + 1e-9)
@@ -400,7 +431,7 @@ try:
                 fi = V_norm[:, :, z_idx]
                 ax.plot_surface(xi, yi, zi, facecolors=cmap_obj(fi), linewidth=0.0, antialiased=True, alpha=0.5)
 
-        ax.set_title(f"3D VOLUMETRIC [{vol_scheme.upper}] | Scale: {spatial_label} ({exact_meters}m) | T={t*1e6:.2f}碌s", color='#00ffcc', fontsize=9, fontweight='bold')
+        ax.set_title(f"3D VOLUMETRIC [{vol_scheme.upper}] | Scale: {spatial_label} ({exact_meters}m) | T=I={t:.2f}s", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white')
         ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white')
         ax.set_zlabel(f"Spatial Z ({spatial_label})", color='white')

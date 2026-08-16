@@ -184,7 +184,7 @@ CAM_YAW=${CAM_YAW:-55}
 
 # 6/7 Visual Heuristics Panel Controls
 echo -e "\n${YELLOW}[6/7] Advanced Visual Heuristics & Filtering Profiles:${NC}"
-read -p "Enter custom colormap override [default: inferno, options: viridis, plasma, inferno, turbo]: " VISUAL_CMAP
+read -p "Enter custom colormap override [default: linear, options: gray, linear, viridis, plasma, inferno, turbo]: " VISUAL_CMAP
 VISUAL_CMAP=${VISUAL_CMAP:-inferno}
 read -p "Enter spatial distortion amplitude multiplier [numeric, default 1.0]: " DISTORTION_AMP
 DISTORTION_AMP=${DISTORTION_AMP:-1.0}

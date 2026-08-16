@@ -163,7 +163,7 @@ export AUDIO_PROFILE
 
 # 5. PROCEDURAL EFFECTS, CAMERA CONSTRAINTS & PROMPT CONFIGURATION
 echo -e "\n${YELLOW}[5/7] Procedural Effects & Camera Constraints Configuration:${NC}"
-read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03]: " PROMPT_INPUT
+read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03](options: soliton_core,soliton_shift,boost,damping,negative_mass,phase_lock,ir,clip_03,raw_passthrough): " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core,soliton_shift,clip_03}
 
 read -p "Enter full parametric seed float / rotational weight [numeric float, default 1.1975807343]: " FULL_SEED

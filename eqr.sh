@@ -161,7 +161,7 @@ esac
 export TARGET_HEURISTIC
 export AUDIO_PROFILE
 
-# 5. PROCEDURAL EFFECTS, CAMERA CONSTRAINTS & PROMPT CONFIGURATION (Restored Full 7/7 Panels)
+# 5. PROCEDURAL EFFECTS, CAMERA CONSTRAINTS & PROMPT CONFIGURATION
 echo -e "\n${YELLOW}[5/7] Procedural Effects & Camera Constraints Configuration:${NC}"
 read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03]: " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core,soliton_shift,clip_03}
@@ -184,8 +184,8 @@ CAM_YAW=${CAM_YAW:-55}
 
 # 6/7 Visual Heuristics Panel Controls
 echo -e "\n${YELLOW}[6/7] Advanced Visual Heuristics & Filtering Profiles:${NC}"
-read -p "Enter custom colormap override [default: linear, options: gray, linear, viridis, plasma, inferno, turbo]: " VISUAL_CMAP
-VISUAL_CMAP=${VISUAL_CMAP:-inferno}
+read -p "Enter custom colormap override [default: linear, options: linear, gray, viridis, plasma, inferno, turbo]: " VISUAL_CMAP
+VISUAL_CMAP=${VISUAL_CMAP:-linear}
 read -p "Enter spatial distortion amplitude multiplier [numeric, default 1.0]: " DISTORTION_AMP
 DISTORTION_AMP=${DISTORTION_AMP:-1.0}
 
@@ -194,8 +194,8 @@ export DISTORTION_AMP
 
 # 7/7 Parametry & Pipeline Matrix Constraints
 echo -e "\n${YELLOW}[7/7] Parametry & Pipeline Matrix Constraints:${NC}"
-read -p "Enter master pipeline safety clamp limit [float, default 10.0]: " SAFETY_CLAMP
-SAFETY_CLAMP=${SAFETY_CLAMP:-10.0}
+read -p "Enter master pipeline safety clamp limit [float, default 1000.0 (Unfiltered Raw Mode)]:" SAFETY_CLAMP
+SAFETY_CLAMP=${SAFETY_CLAMP:-1000.0}
 read -p "Enable high-precision tensor fallback mode [y/N, default n]: " HIGH_PRECISION
 HIGH_PRECISION=${HIGH_PRECISION:-n}
 
@@ -225,12 +225,9 @@ echo -e "    - Time Factor T=I    : 1.0 Second Base Enforced"
 echo -e "    - Volumetric Scheme  : ${VOL_SCHEME} (Res: ${VOL_RES}, Threshold: ${VOL_THRESHOLD})"
 echo -e "    - Time Offset        : ${TIME_OFFSET} units"
 echo -e "    - XYZ Offsets        : X=${OFFSET_X}, Y=${OFFSET_Y}, Z=${OFFSET_Z}"
-echo -e "    - Heuristics / Cmap  : ${TARGET_HEURISTIC} / ${VISUAL_CMAP}"
+echo -e "    - Heuristics / Cmap  : ${TARGET_HEURISTIC} / ${VISUAL_CMAP} (Unfiltered Clamp: ${SAFETY_CLAMP})"
 echo -e "    - Output Target      : $OUTPUT_FILE\n"
 
-# ==============================================================================
-# PYTHON VOLUMETRIC 3D ENGINE WRITER (FEDORA / LINUX)
-# ==============================================================================
 cat << 'EOF' > /tmp/tensor_volumetric_engine.py
 import numpy as np
 import matplotlib
@@ -243,7 +240,6 @@ import wave
 import subprocess
 import signal
 
-# Enforce 32-bit float matrix optimization safely
 if os.environ.get("HIGH_PRECISION", "n").lower() == 'y':
     dtype = np.float64
 else:
@@ -256,17 +252,17 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 try:
-    print("[Python] Initializing True 3D Volumetric Tensor Reality Engine (T=I=1s Enforced)...")
-    c_base = 1.0  # Normalized exact base with T=I=1s factor
+    print("[Python] Initializing True 3D Volumetric Tensor Reality Engine (Unfiltered Raw Mode)...")
+    c_base = 1.0 
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
     exact_meters = float(os.environ.get("EXACT_METERS_SCALE", "1.0"))
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
     spatial_label = os.environ.get("SPATIAL_LABEL", "cm")
     heuristic = os.environ.get("TARGET_HEURISTIC", "hybrid_core")
     audio_profile = os.environ.get("AUDIO_PROFILE", "photon_chime")
-    active_cmap = os.environ.get("VISUAL_CMAP", "inferno")
+    active_cmap = os.environ.get("VISUAL_CMAP", "linear")
     distortion_amp = float(os.environ.get("DISTORTION_AMP", "1.0"))
-    safety_clamp = float(os.environ.get("SAFETY_CLAMP", "10.0"))
+    safety_clamp = float(os.environ.get("SAFETY_CLAMP", "1000.0"))
 
     vol_scheme = os.environ.get("VOL_SCHEME", "isosurface")
     vol_res = int(os.environ.get("VOL_RES", "25"))
@@ -401,8 +397,14 @@ try:
         Y_rot = X * np.sin(rot_angle) + Y * np.cos(rot_angle)
 
         P_vol = np.sin((X_rot * c) / (hx * (full_seed + prompt_modifier))) * np.cos((Y_rot * c) / (hy * full_seed) - beta)
-        E_vol = 1.0 + hz * full_seed * np.exp(-((X_rot**2 + Y_rot**2 + Z_grid**2) / (2 * (grid_span**2))))
-        V_field = (P_vol * E_vol + np.sin(Z_grid * hx * 0.1 - c * t)) * distortion_app
+        
+        # Overflow protection on square terms
+        X_sq = np.clip(X_rot**2, -1e18, 1e18)
+        Y_sq = np.clip(Y_rot**2, -1e18, 1e18)
+        Z_sq = np.clip(Z_grid**2, -1e18, 1e18)
+        
+        E_vol = 1.0 + hz * full_seed * np.exp(-((X_sq + Y_sq + Z_sq) / (2.0 * (grid_span**2) + 1e-9)))
+        V_field = (P_vol * E_vol + np.sin(Z_grid * hx * 0.1 - c * t)) * distortion_amp
 
         if use_negative_mass:
             V_field = -np.log(np.abs(V_field) + 1e-5) * np.sign(V_field)
@@ -415,21 +417,25 @@ try:
         ax.clear()
         ax.set_facecolor('#090d16')
 
+        if active_cmap == 'linear':
+            cmap_to_use = plt.get_cmap('gray')
+        else:
+            cmap_to_use = plt.get_cmap(active_cmap)
+
         if vol_scheme == "voxel_grid":
             voxels = np.abs(V_norm) > (1.0 - vol_threshold)
-            colors = plt.get_cmap(active_cmap)(V_norm)
+            colors = cmap_to_use(V_norm)
             ax.voxels(voxels, facecolors=colors, edgecolor='k', linewidth=0.05, alpha=0.7)
         elif vol_scheme == "scatter_3d":
             mask = np.abs(V_norm) > vol_threshold
-            ax.scatter(X_rot[mask], Y_rot[mask], Z_grid[mask], c=V_norm[mask], cmap=active_cmap, s=5, alpha=0.6, edgecolors='none')
+            ax.scatter(X_rot[mask], Y_rot[mask], Z_grid[mask], c=V_norm[mask], cmap=cmap_to_use, s=5, alpha=0.6, edgecolors='none')
         else:
-            cmap_obj = plt.get_cmap(active_cmap)
             for z_idx in range(0, Z_grid.shape[2], max(1, Z_grid.shape[2] // 6)):
                 xi = X_rot[:, :, z_idx]
                 yi = Y_rot[:, :, z_idx]
                 zi = Z_grid[:, :, z_idx]
                 fi = V_norm[:, :, z_idx]
-                ax.plot_surface(xi, yi, zi, facecolors=cmap_obj(fi), linewidth=0.0, antialiased=True, alpha=0.5)
+                ax.plot_surface(xi, yi, zi, facecolors=cmap_to_use(fi), linewidth=0.0, antialiased=True, alpha=0.5)
 
         ax.set_title(f"3D VOLUMETRIC [{vol_scheme.upper}] | Scale: {spatial_label} ({exact_meters}m) | T=I={t:.2f}s", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white')

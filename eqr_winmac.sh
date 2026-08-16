@@ -121,7 +121,7 @@ export TARGET_HEURISTIC
 export AUDIO_PROFILE
 
 # 5. CAMERA & PROMPTS
-read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03]: " PROMPT_INPUT
+read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03] (options: soliton_core,soliton_shift,boost,damping,negative_mass,phase_lock,ir,clip_03,raw_passthrough): " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core,soliton_shift,clip_03}
 read -p "Enter full parametric seed float [numeric, default 1.1975807343]: " FULL_SEED
 FULL_SEED=${FULL_SEED:-1.1975807343}

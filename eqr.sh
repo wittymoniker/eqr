@@ -16,7 +16,7 @@ NC='\033[0m'
 
 clear
 echo -e "${CYAN}==============================================================================${NC}"
-echo -e "${GREEN}    TENSOR REALITY ENGINE - FEDORA VOLUMETRIC MASTER EDITION             ${NC}"
+echo -e "${GREEN}    TENSOR REALITY ENGINE - FEDORA TRUE 3D VOLUMETRIC MASTER EDITION     ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
 
 # 1. TIMESCALE & TIME OFFSET CONFIGURATION (Time T = I = 1 second enforced)
@@ -99,27 +99,27 @@ export OFFSET_X
 export OFFSET_Y
 export OFFSET_Z
 
-# 3. 3D VOLUMETRIC SCHEME & RENDERING OPTIMIZATION PROMPT
-echo -e "\n${YELLOW}[3/7] 3D Volumetric Scheme & Optimization Techniques:${NC}"
-echo "Select True 3D Volumetric Rendering Scheme to Avoid Flat Distortion Planes:"
-echo "  [1] voxel_grid   (Discretized 3D cubic blocks / structural voxel matrices)"
-echo "  [2] isosurface   (Multi-layered 3D contour meshes / volumetric shell nesting) [DEFAULT]"
-echo "  [3] scatter_3d   (High-density point-cloud particle energy distribution field)"
-read -p "Select volumetric scheme option [1-3, default 2]: " VOL_SCHEME_CHOICE
-VOL_SCHEME_CHOICE=${VOL_SCHEME_CHOICE:-2}
+# 3. TRUE 3D TENSOR VOLUMETRIC SCHEME & RENDERING OPTIMIZATION PROMPT
+echo -e "\n${YELLOW}[3/7] True 3D Volumetric Tensor Scan Scheme & Optimization Techniques:${NC}"
+echo "Select True 3D Volumetric Rendering Scheme (Non-Slice Unified Tensor Scan):"
+echo "  [1] full_voxel_matrix (Discretized True 3D cubic blocks / structural tensor voxels) [DEFAULT]"
+echo "  [2] scatter_tensor    (High-density 3D spatial point-cloud particle energy distribution)"
+echo "  [3] shell_isosurface  (Multi-layered 3D contour boundary shells)"
+read -p "Select volumetric scheme option [1-3, default 1]: " VOL_SCHEME_CHOICE
+VOL_SCHEME_CHOICE=${VOL_SCHEME_CHOICE:-1}
 
 case "$VOL_SCHEME_CHOICE" in
-    1) VOL_SCHEME="voxel_grid" ;;
-    2) VOL_SCHEME="isosurface" ;;
-    3) VOL_SCHEME="scatter_3d" ;;
-    *) VOL_SCHEME="isosurface" ;;
+    1) VOL_SCHEME="full_voxel_matrix" ;;
+    2) VOL_SCHEME="scatter_tensor" ;;
+    3) VOL_SCHEME="shell_isosurface" ;;
+    *) VOL_SCHEME="full_voxel_matrix" ;;
 esac
 
-read -p "Enter volumetric grid resolution density [integer 15-50, default 25]: " VOL_RES
+read -p "Enter volumetric tensor grid resolution density [integer 15-45, default 25]: " VOL_RES
 VOL_RES=${VOL_RES:-25}
 
-read -p "Enter volumetric threshold cut-off or density filter [float 0.0-1.0, default 0.3]: " VOL_THRESHOLD
-VOL_THRESHOLD=${VOL_THRESHOLD:-0.3}
+read -p "Enter volumetric tensor density threshold cut-off [float 0.0-1.0, default 0.35]: " VOL_THRESHOLD
+VOL_THRESHOLD=${VOL_THRESHOLD:-0.35}
 
 export VOL_SCHEME
 export VOL_RES
@@ -252,8 +252,8 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 try:
-    print("[Python] Initializing True 3D Volumetric Tensor Reality Engine (Unfiltered Raw Mode)...")
-    c_base = 1.0 
+    print("[Python] Initializing True 3D Volumetric Tensor Scan Engine (Unfiltered Raw Mode)...")
+    c_base = 1.0
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
     exact_meters = float(os.environ.get("EXACT_METERS_SCALE", "1.0"))
     field_mult = float(os.environ.get("FIELD_SCALE_MULT", "1.1975807343"))
@@ -264,9 +264,9 @@ try:
     distortion_amp = float(os.environ.get("DISTORTION_AMP", "1.0"))
     safety_clamp = float(os.environ.get("SAFETY_CLAMP", "1000.0"))
 
-    vol_scheme = os.environ.get("VOL_SCHEME", "isosurface")
+    vol_scheme = os.environ.get("VOL_SCHEME", "full_voxel_matrix")
     vol_res = int(os.environ.get("VOL_RES", "25"))
-    vol_threshold = float(os.environ.get("VOL_THRESHOLD", "0.3"))
+    vol_threshold = float(os.environ.get("VOL_THRESHOLD", "0.35"))
 
     c = c_base * field_mult
     fps = int(os.environ.get("FPS", "30"))
@@ -397,12 +397,11 @@ try:
         Y_rot = X * np.sin(rot_angle) + Y * np.cos(rot_angle)
 
         P_vol = np.sin((X_rot * c) / (hx * (full_seed + prompt_modifier))) * np.cos((Y_rot * c) / (hy * full_seed) - beta)
-        
-        # Overflow protection on square terms
+
         X_sq = np.clip(X_rot**2, -1e18, 1e18)
         Y_sq = np.clip(Y_rot**2, -1e18, 1e18)
         Z_sq = np.clip(Z_grid**2, -1e18, 1e18)
-        
+
         E_vol = 1.0 + hz * full_seed * np.exp(-((X_sq + Y_sq + Z_sq) / (2.0 * (grid_span**2) + 1e-9)))
         V_field = (P_vol * E_vol + np.sin(Z_grid * hx * 0.1 - c * t)) * distortion_amp
 
@@ -422,22 +421,25 @@ try:
         else:
             cmap_to_use = plt.get_cmap(active_cmap)
 
-        if vol_scheme == "voxel_grid":
-            voxels = np.abs(V_norm) > (1.0 - vol_threshold)
+        # Unified 3D Volumetric Tensor Representation
+        if vol_scheme == "full_voxel_matrix":
+            # True 3D volumetric tensor voxel grid (no 2D slice stacking or gaps)
+            voxels = np.abs(V_norm) >= vol_threshold
             colors = cmap_to_use(V_norm)
-            ax.voxels(voxels, facecolors=colors, edgecolor='k', linewidth=0.05, alpha=0.7)
-        elif vol_scheme == "scatter_3d":
-            mask = np.abs(V_norm) > vol_threshold
-            ax.scatter(X_rot[mask], Y_rot[mask], Z_grid[mask], c=V_norm[mask], cmap=cmap_to_use, s=5, alpha=0.6, edgecolors='none')
+            ax.voxels(voxels, facecolors=colors, edgecolor='none', alpha=0.65)
+        elif vol_scheme == "scatter_tensor":
+            # Full 3D localized point-cloud energy distribution tensor scan
+            mask = np.abs(V_norm) >= vol_threshold
+            ax.scatter(X_rot[mask], Y_rot[mask], Z_grid[mask], c=V_norm[mask], cmap=cmap_to_use, s=6, alpha=0.7, edgecolors='none')
         else:
-            for z_idx in range(0, Z_grid.shape[2], max(1, Z_grid.shape[2] // 6)):
-                xi = X_rot[:, :, z_idx]
-                yi = Y_rot[:, :, z_idx]
-                zi = Z_grid[:, :, z_idx]
-                fi = V_norm[:, :, z_idx]
-                ax.plot_surface(xi, yi, zi, facecolors=cmap_to_use(fi), linewidth=0.0, antialiased=True, alpha=0.5)
+            # Multi-isocontour shell field nesting across full XYZ tensor dimensions
+            levels = np.linspace(vol_threshold, 1.0 - 0.05, 5)
+            for lvl in levels:
+                shell_mask = (np.abs(V_norm) >= lvl) & (np.abs(V_norm) < lvl + 0.15)
+                if np.any(shell_mask):
+                    ax.scatter(X_rot[shell_mask], Y_rot[shell_mask], Z_grid[shell_mask], c=V_norm[shell_mask], cmap=cmap_to_use, s=4, alpha=0.45, edgecolors='none')
 
-        ax.set_title(f"3D VOLUMETRIC [{vol_scheme.upper}] | Scale: {spatial_label} ({exact_meters}m) | T=I={t:.2f}s", color='#00ffcc', fontsize=9, fontweight='bold')
+        ax.set_title(f"TRUE 3D TENSOR SCAN [{vol_scheme.upper}] | Scale: {spatial_label} ({exact_meters}m) | T=I={t:.2f}s", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white')
         ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white')
         ax.set_zlabel(f"Spatial Z ({spatial_label})", color='white')
@@ -453,14 +455,14 @@ try:
         p_ffmpeg.stdin.flush()
 
         if i % log_interval == 0 or i == total_frames - 1:
-            print(f"[Python] Rendered volumetric frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
+            print(f"[Python] Rendered true 3D tensor volumetric frame {i+1}/{total_frames} ({(i+1)/total_frames*100:.1f}%)")
 
     plt.close(fig)
     p_ffmpeg.communicate()
 
     if os.path.exists(audio_file_path):
         os.remove(audio_file_path)
-    print("[Python] Volumetric Master Pipeline Render Completed Successfully.")
+    print("[Python] True 3D Volumetric Tensor Pipeline Render Completed Successfully.")
 
 except Exception as e:
     print(f"[Python Error]: {e}")
@@ -472,6 +474,6 @@ python3 /tmp/tensor_volumetric_engine.py
 rm -f /tmp/tensor_volumetric_engine.py
 
 echo -e "\n${CYAN}==============================================================================${NC}"
-echo -e "${GREEN}       FEDORA VOLUMETRIC PIPELINE RENDER FINISHED SUCCESSFULLY           ${NC}"
+echo -e "${GREEN}       FEDORA TRUE 3D TENSOR VOLUMETRIC PIPELINE FINISHED SUCCESSFULLY   ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
 echo -e "Saved file: ${BLUE}$OUTPUT_FILE${NC}"

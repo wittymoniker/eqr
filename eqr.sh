@@ -3,7 +3,8 @@
 # ADVANCED TENSOR REALITY ENGINE - MASTER VOLUMETRIC EDITION (FEDORA)
 # Framework: Equation of Reality, P,E,D Subfunctions, Operator Theory, Meum (20d)
 # Features: True 3D Volumetric Rendering Schemes (Voxels, Isosurfaces, Scatter),
-#           Metric Scales, Exact Field Meters Scaling Index, Audio Profiles, XYZ & Time Offsets
+#           Interval-Graded Opacity Mapping, Metric Scales, Exact Field Meters,
+#           Camera Trajectory Profiles, Tensor Differential Operators, Audio Profiles
 # ==============================================================================
 
 set -uo pipefail
@@ -19,8 +20,8 @@ echo -e "${CYAN}================================================================
 echo -e "${GREEN}    TENSOR REALITY ENGINE - FEDORA TRUE 3D VOLUMETRIC MASTER EDITION     ${NC}"
 echo -e "${CYAN}==============================================================================${NC}"
 
-# 1. TIMESCALE & TIME OFFSET CONFIGURATION (Time T = I = 1 second enforced)
-echo -e "\n${YELLOW}[1/7] Select Base Time Scale Unit:${NC}"
+# 1. TIMESCALE & TIME OFFSET CONFIGURATION
+echo -e "\n${YELLOW}[1/8] Select Base Time Scale Unit:${NC}"
 echo "  [1] Gigasecond  (1 Gs  = 10^9 s)"
 echo "  [2] Megasecond  (1 Ms  = 10^6 s)"
 echo "  [3] Second      (1 s   = 1.0 s) [DEFAULT/FIXED BASE T=I=1]"
@@ -58,8 +59,8 @@ export CALC_DURATION_SEC
 export VIDEO_STRETCH_SEC
 export TIME_OFFSET
 
-# 2. METRIC SPATIAL DOMAIN SCALE, EXACT METERS INDEX & XYZ OFFSET CONFIGURATION
-echo -e "\n${YELLOW}[2/7] Centimeter-Based Spatial Dimension Scale & Volumetric Offsets:${NC}"
+# 2. METRIC SPATIAL DOMAIN SCALE, EXACT METERS INDEX & XYZ OFFSETS
+echo -e "\n${YELLOW}[2/8] Centimeter-Based Spatial Dimension Scale & Volumetric Offsets:${NC}"
 echo "Select Base Spatial Dimension Scale Unit (Metric relative to cm):"
 echo "  [1] Gigameter   (Gm  = 10^11 cm)"
 echo "  [2] Megameter   (Mm  = 10^8 cm)"
@@ -76,7 +77,7 @@ case "$SPATIAL_CHOICE" in
     2) SPATIAL_BASE_VAL="1e8"; SPATIAL_LABEL="Mm" ;;
     3) SPATIAL_BASE_VAL="1e5"; SPATIAL_LABEL="km" ;;
     4) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
-    5) SPATIAL_BASE_VAL="1e-4"; SPATIAL_LABEL="µm" ;;
+    5) SPATIAL_BASE_VAL="1e-4"; SPATIAL_LABEL="µs" ;;
     6) SPATIAL_BASE_VAL="1e-7"; SPATIAL_LABEL="nm" ;;
     7) SPATIAL_BASE_VAL="1e-10"; SPATIAL_LABEL="pm" ;;
     *) SPATIAL_BASE_VAL="1.0"; SPATIAL_LABEL="cm" ;;
@@ -99,9 +100,9 @@ export OFFSET_X
 export OFFSET_Y
 export OFFSET_Z
 
-# 3. TRUE 3D TENSOR VOLUMETRIC SCHEME & RENDERING OPTIMIZATION PROMPT
-echo -e "\n${YELLOW}[3/7] True 3D Volumetric Tensor Scan Scheme & Optimization Techniques:${NC}"
-echo "Select True 3D Volumetric Rendering Scheme (Non-Slice Unified Tensor Scan):"
+# 3. TRUE 3D TENSOR VOLUMETRIC SCHEME & INTERVAL OPACITY MAPPING
+echo -e "\n${YELLOW}[3/8] True 3D Volumetric Tensor Scan Scheme & Opacity Intervals:${NC}"
+echo "Select True 3D Volumetric Rendering Scheme:"
 echo "  [1] full_voxel_matrix (Discretized True 3D cubic blocks / structural tensor voxels) [DEFAULT]"
 echo "  [2] scatter_tensor    (High-density 3D spatial point-cloud particle energy distribution)"
 echo "  [3] shell_isosurface  (Multi-layered 3D contour boundary shells)"
@@ -118,15 +119,48 @@ esac
 read -p "Enter volumetric tensor grid resolution density [integer 15-45, default 25]: " VOL_RES
 VOL_RES=${VOL_RES:-25}
 
-read -p "Enter volumetric tensor density threshold cut-off [float 0.0-1.0, default 0.35]: " VOL_THRESHOLD
-VOL_THRESHOLD=${VOL_THRESHOLD:-0.35}
+read -p "Enter opacity grading interval as min_val,max_val [comma-separated float 0.0-1.0, default 0.2,0.8]: " OPACITY_INTERVAL
+OPACITY_INTERVAL=${OPACITY_INTERVAL:-0.2,0.8}
 
 export VOL_SCHEME
 export VOL_RES
-export VOL_THRESHOLD
+export OPACITY_INTERVAL
 
-# 4. HEURISTICS & ACOUSTIC AUDIO PROFILES
-echo -e "\n${YELLOW}[4/7] Target Labeling Heuristic Profiles:${NC}"
+# 4. NEW RECOMMENDED PROMPT SECTIONS: CAMERA TRAJECTORY & TENSOR OPERATORS
+echo -e "\n${YELLOW}[4/8] Advanced Camera Trajectory & Tensor Differential Operators:${NC}"
+echo "Select Camera Motion Trajectory Profile:"
+echo "  [1] orbital_spin    (Standard continuous rotational azimuth/pitch scan) [DEFAULT]"
+echo "  [2] lissajous_drift (Complex harmonically coupled multi-axis orbit curve)"
+echo "  [3] helix_zoom      (Vertical screw-thread ascension trajectory)"
+read -p "Select camera trajectory option [1-3, default 1]: " CAM_TRAJ_CHOICE
+CAM_TRAJ_CHOICE=${CAM_TRAJ_CHOICE:-1}
+
+case "$CAM_TRAJ_CHOICE" in
+    1) CAM_TRAJECTORY="orbital_spin" ;;
+    2) CAM_TRAJECTORY="lissajous_drift" ;;
+    3) CAM_TRAJECTORY="helix_zoom" ;;
+    *) CAM_TRAJECTORY="orbital_spin" ;;
+esac
+
+echo "Select Tensor Differential Operator Filter:"
+echo "  [1] standard_field   (Direct amplitude evaluation) [DEFAULT]"
+echo "  [2] laplacian_edge   (Spatial second-derivative Laplacian boundary enhancement)"
+echo "  [3] gradient_flux    (Vector gradient magnitude flux intensity)"
+read -p "Select operator filter option [1-3, default 1]: " OP_FILTER_CHOICE
+OP_FILTER_CHOICE=${OP_FILTER_CHOICE:-1}
+
+case "$OP_FILTER_CHOICE" in
+    1) TENSOR_OPERATOR="standard_field" ;;
+    2) TENSOR_OPERATOR="laplacian_edge" ;;
+    3) TENSOR_OPERATOR="gradient_flux" ;;
+    *) TENSOR_OPERATOR="standard_field" ;;
+esac
+
+export CAM_TRAJECTORY
+export TENSOR_OPERATOR
+
+# 5. HEURISTICS & ACOUSTIC AUDIO PROFILES
+echo -e "\n${YELLOW}[5/8] Target Labeling Heuristic Profiles & Audio:${NC}"
 echo "  [1] mattervision (Density/Mass distribution field matrix overlays)"
 echo "  [2] photovision  (Photon flux luminance and wavelength-band colorization)"
 echo "  [3] hybrid_core  (Dual simultaneous mattervision & photovision tensor fusion) [DEFAULT]"
@@ -142,7 +176,7 @@ case "$HEURISTIC_CHOICE" in
     *) TARGET_HEURISTIC="hybrid_core" ;;
 esac
 
-echo -e "\n${YELLOW}[4.1] Acoustic Audio Sonification Profile (Ears Option):${NC}"
+echo -e "\n${YELLOW}[5.1] Acoustic Audio Sonification Profile:${NC}"
 echo "  [1] harmonic_drone  (Resonant multi-harmonic carrier chord synthesized from tensor mean slices)"
 echo "  [2] standing_wave   (Phase-coupled frequency sweeps mimicking acoustic cavity resonance)"
 echo "  [3] photon_chime    (High-frequency transient scintillation pulses mapped from optical flux) [DEFAULT]"
@@ -161,8 +195,8 @@ esac
 export TARGET_HEURISTIC
 export AUDIO_PROFILE
 
-# 5. PROCEDURAL EFFECTS, CAMERA CONSTRAINTS & PROMPT CONFIGURATION
-echo -e "\n${YELLOW}[5/7] Procedural Effects & Camera Constraints Configuration:${NC}"
+# 6. PROCEDURAL EFFECTS, CAMERA CONSTRAINTS & SEEDS
+echo -e "\n${YELLOW}[6/8] Procedural Effects & Camera Constraints Configuration:${NC}"
 read -p "Enter prompt configuration [default: soliton_core,soliton_shift,clip_03](options: soliton_core,soliton_shift,boost,damping,negative_mass,phase_lock,ir,clip_03,raw_passthrough): " PROMPT_INPUT
 PROMPT_INPUT=${PROMPT_INPUT:-soliton_core,soliton_shift,clip_03}
 
@@ -182,8 +216,8 @@ CAM_PITCH=${CAM_PITCH:-35}
 read -p "Enter initial Yaw angle in degrees [numeric, default 55]: " CAM_YAW
 CAM_YAW=${CAM_YAW:-55}
 
-# 6/7 Visual Heuristics Panel Controls
-echo -e "\n${YELLOW}[6/7] Advanced Visual Heuristics & Filtering Profiles:${NC}"
+# 7. ADVANCED VISUAL HEURISTICS & COLORMAPS
+echo -e "\n${YELLOW}[7/8] Advanced Visual Heuristics & Filtering Profiles:${NC}"
 read -p "Enter custom colormap override [default: linear, options: linear, gray, viridis, plasma, inferno, turbo]: " VISUAL_CMAP
 VISUAL_CMAP=${VISUAL_CMAP:-linear}
 read -p "Enter spatial distortion amplitude multiplier [numeric, default 1.0]: " DISTORTION_AMP
@@ -192,8 +226,8 @@ DISTORTION_AMP=${DISTORTION_AMP:-1.0}
 export VISUAL_CMAP
 export DISTORTION_AMP
 
-# 7/7 Parametry & Pipeline Matrix Constraints
-echo -e "\n${YELLOW}[7/7] Parametry & Pipeline Matrix Constraints:${NC}"
+# 8. PARAMETRY & PIPELINE MATRIX CONSTRAINTS
+echo -e "\n${YELLOW}[8/8] Parametry & Pipeline Matrix Constraints:${NC}"
 read -p "Enter master pipeline safety clamp limit [float, default 1000.0 (Unfiltered Raw Mode)]:" SAFETY_CLAMP
 SAFETY_CLAMP=${SAFETY_CLAMP:-1000.0}
 read -p "Enable high-precision tensor fallback mode [y/N, default n]: " HIGH_PRECISION
@@ -222,10 +256,11 @@ echo -e "${CYAN}================================================================
 echo -e "    - Metric Scale       : ${SPATIAL_LABEL}"
 echo -e "    - Exact Field Meters : ${EXACT_METERS_SCALE} m"
 echo -e "    - Time Factor T=I    : 1.0 Second Base Enforced"
-echo -e "    - Volumetric Scheme  : ${VOL_SCHEME} (Res: ${VOL_RES}, Threshold: ${VOL_THRESHOLD})"
+echo -e "    - Volumetric Scheme  : ${VOL_SCHEME} (Res: ${VOL_RES}, Interval: ${OPACITY_INTERVAL})"
+echo -e "    - Trajectory / Op    : ${CAM_TRAJECTORY} / ${TENSOR_OPERATOR}"
 echo -e "    - Time Offset        : ${TIME_OFFSET} units"
 echo -e "    - XYZ Offsets        : X=${OFFSET_X}, Y=${OFFSET_Y}, Z=${OFFSET_Z}"
-echo -e "    - Heuristics / Cmap  : ${TARGET_HEURISTIC} / ${VISUAL_CMAP} (Unfiltered Clamp: ${SAFETY_CLAMP})"
+echo -e "    - Heuristics / Cmap  : ${TARGET_HEURISTIC} / ${VISUAL_CMAP}"
 echo -e "    - Output Target      : $OUTPUT_FILE\n"
 
 cat << 'EOF' > /tmp/tensor_volumetric_engine.py
@@ -252,7 +287,7 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 try:
-    print("[Python] Initializing True 3D Volumetric Tensor Scan Engine (Unfiltered Raw Mode)...")
+    print("[Python] Initializing Enhanced True 3D Volumetric Tensor Scan Engine...")
     c_base = 1.0
     spatial_base = float(os.environ.get("SPATIAL_BASE_VAL", "1.0"))
     exact_meters = float(os.environ.get("EXACT_METERS_SCALE", "1.0"))
@@ -266,7 +301,12 @@ try:
 
     vol_scheme = os.environ.get("VOL_SCHEME", "full_voxel_matrix")
     vol_res = int(os.environ.get("VOL_RES", "25"))
-    vol_threshold = float(os.environ.get("VOL_THRESHOLD", "0.35"))
+    cam_trajectory = os.environ.get("CAM_TRAJECTORY", "orbital_spin")
+    tensor_operator = os.environ.get("TENSOR_OPERATOR", "standard_field")
+
+    raw_interval = os.environ.get("OPACITY_INTERVAL", "0.2,0.8").split(',')
+    op_min = float(raw_interval[0].strip()) if len(raw_interval) > 0 else 0.2
+    op_max = float(raw_interval[1].strip()) if len(raw_interval) > 1 else 0.8
 
     c = c_base * field_mult
     fps = int(os.environ.get("FPS", "30"))
@@ -408,6 +448,13 @@ try:
         if use_negative_mass:
             V_field = -np.log(np.abs(V_field) + 1e-5) * np.sign(V_field)
 
+        # Apply Tensor Differential Operator Filters
+        if tensor_operator == "laplacian_edge":
+            V_field = np.abs(np.gradient(np.gradient(V_field)[0])[0])
+        elif tensor_operator == "gradient_flux":
+            grad_x, grad_y, grad_z = np.gradient(V_field)
+            V_field = np.sqrt(grad_x**2 + grad_y**2 + grad_z**2)
+
         V_field = np.clip(V_field, -safety_clamp, safety_clamp)
         V_field = np.nan_to_num(V_field, nan=0.0, posinf=1.0, neginf=-1.0)
         v_min, v_max = V_field.min(), V_field.max()
@@ -421,31 +468,51 @@ try:
         else:
             cmap_to_use = plt.get_cmap(active_cmap)
 
-        # Unified 3D Volumetric Tensor Representation
-        if vol_scheme == "full_voxel_matrix":
-            # True 3D volumetric tensor voxel grid (no 2D slice stacking or gaps)
-            voxels = np.abs(V_norm) >= vol_threshold
-            colors = cmap_to_use(V_norm)
-            ax.voxels(voxels, facecolors=colors, edgecolor='none', alpha=0.65)
-        elif vol_scheme == "scatter_tensor":
-            # Full 3D localized point-cloud energy distribution tensor scan
-            mask = np.abs(V_norm) >= vol_threshold
-            ax.scatter(X_rot[mask], Y_rot[mask], Z_grid[mask], c=V_norm[mask], cmap=cmap_to_use, s=6, alpha=0.7, edgecolors='none')
-        else:
-            # Multi-isocontour shell field nesting across full XYZ tensor dimensions
-            levels = np.linspace(vol_threshold, 1.0 - 0.05, 5)
-            for lvl in levels:
-                shell_mask = (np.abs(V_norm) >= lvl) & (np.abs(V_norm) < lvl + 0.15)
-                if np.any(shell_mask):
-                    ax.scatter(X_rot[shell_mask], Y_rot[shell_mask], Z_grid[shell_mask], c=V_norm[shell_mask], cmap=cmap_to_use, s=4, alpha=0.45, edgecolors='none')
+        abs_norm = np.abs(V_norm)
+        voxels = (abs_norm >= op_min) & (abs_norm <= op_max)
 
-        ax.set_title(f"TRUE 3D TENSOR SCAN [{vol_scheme.upper}] | Scale: {spatial_label} ({exact_meters}m) | T=I={t:.2f}s", color='#00ffcc', fontsize=9, fontweight='bold')
+        alpha_map = np.zeros_like(V_norm)
+        interval_span = max(1e-5, op_max - op_min)
+        in_range_mask = voxels
+
+        if np.any(in_range_mask):
+            alpha_map[in_range_mask] = 0.15 + 0.70 * np.clip((abs_norm[in_range_mask] - op_min) / interval_span, 0.0, 1.0)
+
+        colors = cmap_to_use(V_norm)
+        colors[..., 3] = alpha_map
+
+        if vol_scheme == "full_voxel_matrix":
+            ax.voxels(voxels, facecolors=colors, edgecolor='none')
+        elif vol_scheme == "scatter_tensor":
+            ax.scatter(X_rot[in_range_mask], Y_rot[in_range_mask], Z_grid[in_range_mask], c=V_norm[in_range_mask], cmap=cmap_to_use, s=8, alpha=0.7, edgecolors='none')
+        else:
+            levels = np.linspace(op_min, op_max, 5)
+            for lvl in levels:
+                shell_mask = (abs_norm >= lvl) & (abs_norm < lvl + (interval_span / 5.0))
+                if np.any(shell_mask):
+                    ax.scatter(X_rot[shell_mask], Y_rot[shell_mask], Z_grid[shell_mask], c=V_norm[shell_mask], cmap=cmap_to_use, s=5, alpha=0.5, edgecolors='none')
+
+        ax.set_title(f"TRUE 3D TENSOR SCAN [{vol_scheme.upper}] | Opacity: [{op_min}, {op_max}] | T=I={t:.2f}s", color='#00ffcc', fontsize=9, fontweight='bold')
         ax.set_xlabel(f"Spatial X ({spatial_label})", color='white')
         ax.set_ylabel(f"Spatial Y ({spatial_label})", color='white')
         ax.set_zlabel(f"Spatial Z ({spatial_label})", color='white')
 
-        ax.dist = cam_dist * 10.0
-        ax.view_init(elev=pitch_init + i * 0.2, azim=yaw_init + (i * 0.8))
+        # Camera Trajectory Calculation
+        if cam_trajectory == "lissajous_drift":
+            current_dist = cam_dist * (10.0 + 2.0 * np.sin(progress * np.pi * 2.0))
+            current_elev = pitch_init + 15.0 * np.cos(progress * np.pi * 4.0)
+            current_azim = yaw_init + (i * 1.2)
+        elif cam_trajectory == "helix_zoom":
+            current_dist = cam_dist * (10.0 + 4.0 * (0.5 - progress))
+            current_elev = pitch_init + (progress * 45.0)
+            current_azim = yaw_init + (i * 0.8)
+        else:
+            current_dist = cam_dist * 10.0
+            current_elev = pitch_init + i * 0.2
+            current_azim = yaw_init + (i * 0.8)
+
+        ax.dist = current_dist
+        ax.view_init(elev=current_elev, azim=current_azim)
 
         fig.set_size_inches(10, 6)
         plt.tight_layout()
